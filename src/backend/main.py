@@ -4,6 +4,7 @@ import dotenv
 from app.core.event_bus import EventBus
 from app.core.plugin_manager import PluginManager
 from app.core.scheduler import Scheduler
+from app.core.background_worker import BackgroundWorker
 
 dotenv.load_dotenv()
 
@@ -24,7 +25,10 @@ app.add_middleware(
 )
 
 event_bus = EventBus()
-scheduler = Scheduler()
+scheduler = Scheduler(event_bus)
+bg_worker = BackgroundWorker(event_bus)
+
+bg_worker.start()
 
 core = {
     "bus": event_bus,

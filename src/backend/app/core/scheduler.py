@@ -8,9 +8,10 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.job import Job
 from apscheduler.jobstores.base import JobLookupError
+from app.core.event_bus import EventBus
 
 class Scheduler:
-    def __init__(self, event_bus):
+    def __init__(self, event_bus: EventBus):
         self.event_bus = event_bus
         self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
@@ -44,11 +45,11 @@ class Scheduler:
         """
         return self.scheduler.get_jobs()
 
-    def remove_job(self, id):
+    def remove_job(self, id: int):
         """
         removes job from scheduler with id
         """
-        try:            # job isn't there
+        try:   
             self.scheduler.remove_job(id)
         except JobLookupError:
             print(f"Job {id} doesn't exist")
