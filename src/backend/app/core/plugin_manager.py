@@ -1,0 +1,62 @@
+"""
+registers all plugins in app/plugins folder
+each plugin is a folder which must contain a plugin.py file
+    this file must contain a class for the plugin which must have
+    setup(core) and get_router() functions
+"""
+
+import os
+import importlib.util
+import inspect
+from fastapi import FastAPI
+
+class PluginManager:
+    def __init__(self, core: dict, app: FastAPI):
+        self.core = core
+        self.app = app
+        self.router = router
+
+    def register_plugins(self) -> None:
+        """
+        registers plugins
+        sets them up with core and adds to router
+        """
+        for dirpath, dirnames, filenames in os.walk("src/backend/app/plugins/"):
+            if 'plugin.py' in filenames:
+                # each folder in plugins with a plugin.py file
+                plugin = self.get_plugin_object(dirpath + "/plugin.py")
+                plugin.setup(self.core)
+                self.add_router(plugin)
+
+
+    def add_router(self, plugin) -> None:
+        """
+        adds plugins routes to the http router
+        takes in plugin class
+        """
+        try:
+            self.app.include_router(plugin.get_router())
+        except AttributeError:
+            raise ValueError(f"No get_router() in: {type(plugin).__name__}")
+
+    def get_plugin_object(self, path: str) -> object:
+        """
+        returns object of the plugin class
+        takes in path to plugin.py file
+        """
+        spec = importlib.util.spec_from_file_location("plugin_name", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        classes = [
+            obj for _, obj in inspect.getmembers(module, inspect.isclass)
+            if obj.__module__ == module.__name__
+        ]
+
+        if not classes:
+            raise ValueError(f"No class in: {path}")
+
+        Plugin = classes[0]
+        return Plugin()
+        
+test = PluginManager()

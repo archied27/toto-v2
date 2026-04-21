@@ -1,3 +1,7 @@
+"""
+event bus class which handles communication between plugins
+"""
+
 import asyncio
 import inspect
 from collections import defaultdict
@@ -8,6 +12,10 @@ class EventBus:
         self._listeners = defaultdict(list)
 
     def on(self, event: str, handler: Callable):
+        """
+        adds new listener
+        handler must take data
+        """
         self._listeners[event].append(handler)
 
     async def emit(self, event: str, data: Any = None):
@@ -22,7 +30,7 @@ class EventBus:
         tasks = []
 
         for handler in handlers:
-            # if async function
+            # async function
             if inspect.iscoroutinefunction(handler):
                 tasks.append(handler(data))
             # normal function
