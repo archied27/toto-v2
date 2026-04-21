@@ -3,6 +3,7 @@ import os
 import dotenv
 from app.core.event_bus import EventBus
 from app.core.plugin_manager import PluginManager
+from app.core.scheduler import Scheduler
 
 dotenv.load_dotenv()
 
@@ -23,9 +24,11 @@ app.add_middleware(
 )
 
 event_bus = EventBus()
+scheduler = Scheduler()
 
 core = {
-    "bus": event_bus
+    "bus": event_bus,
+    "scheduler": scheduler
 }
 
 # registers plugins
