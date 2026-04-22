@@ -24,7 +24,7 @@ class DBManager:
             async with db.execute(sql=query, parameters=params) as cursor:
                 return cursor.fetch_one()
 
-    async def fetch_all(self, query: str, params: list):
+    async def fetch_all(self, query: str, params: list = None):
         """
         fetches everything from a SELECT query
         """
@@ -34,5 +34,4 @@ class DBManager:
             async with db.execute(sql=query, parameters=params) as cursor:
                 async for row in cursor:
                     data.append(row.fetch_all)
-    
     

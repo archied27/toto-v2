@@ -13,4 +13,4 @@ class Core:
         self.bus = event_bus
         self.bg_worker = bg_worker
         self.scheduler = scheduler
-        self.db_manager = db_manager 
+        self.db_manager = db_manager
