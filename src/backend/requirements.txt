@@ -1,1 +1,1 @@
-fastapi, uvicorn, python-dotenv, apscheduler
+fastapi, uvicorn, python-dotenv, apscheduler, aiosqlite

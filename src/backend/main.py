@@ -6,6 +6,8 @@ from app.core.plugin_manager import PluginManager
 from app.core.scheduler import Scheduler
 from app.core.background_worker import BackgroundWorker
 from app.core.websocket_manager import WebSocketManager
+from app.db.manager import DBManager
+from app.core.core import Core
 
 dotenv.load_dotenv()
 
@@ -29,13 +31,11 @@ event_bus = EventBus()
 scheduler = Scheduler(event_bus)
 bg_worker = BackgroundWorker(event_bus)
 ws_manager = WebSocketManager(event_bus)
+db_manager = DBManager("app/db/toto.db")
 
 bg_worker.start()
 
-core = {
-    "bus": event_bus,
-    "scheduler": scheduler
-}
+core = Core(event_bus, bg_worker, scheduler, db_manager)
 
 # registers plugins
 plugin_manager = PluginManager(core, app, ws_manager)

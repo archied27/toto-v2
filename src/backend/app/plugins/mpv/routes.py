@@ -1,3 +1,13 @@
-from fastapi import APIRouter
+"""
+endpoints for mpv plugin
+"""
 
-router = APIRouter()
+from fastapi import APIRouter
+from controller import MPVController
+
+class MPVRouter:
+    def __init__(self, controller: MPVController):
+        self.router = APIRouter()
+        
+
+    

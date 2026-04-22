@@ -10,9 +10,10 @@ import importlib.util
 import inspect
 from fastapi import FastAPI
 from app.core.websocket_manager import WebSocketManager
+from app.core.core import Core
 
 class PluginManager:
-    def __init__(self, core: dict, app: FastAPI, ws_manager: WebSocketManager):
+    def __init__(self, core: Core, app: FastAPI, ws_manager: WebSocketManager):
         self.core = core
         self.app = app
         self.router = router
