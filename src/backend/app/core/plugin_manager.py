@@ -2,19 +2,21 @@
 registers all plugins in app/plugins folder
 each plugin is a folder which must contain a plugin.py file
     this file must contain a class for the plugin which must have
-    setup(core) and get_router() functions
+    setup(core), get_router() and get_ws_events()
 """
 
 import os
 import importlib.util
 import inspect
 from fastapi import FastAPI
+from app.core.websocket_manager import WebSocketManager
 
 class PluginManager:
-    def __init__(self, core: dict, app: FastAPI):
+    def __init__(self, core: dict, app: FastAPI, ws_manager: WebSocketManager):
         self.core = core
         self.app = app
         self.router = router
+        self.ws_manager = ws_manager
 
     def register_plugins(self) -> None:
         """
@@ -27,6 +29,7 @@ class PluginManager:
                 plugin = self.get_plugin_object(dirpath + "/plugin.py")
                 plugin.setup(self.core)
                 self.add_router(plugin)
+                self.ws_manager.forward_many(plugin.get_ws_events())
 
 
     def add_router(self, plugin) -> None:
