@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import dotenv
 from app.core.event_bus import EventBus
@@ -33,7 +34,7 @@ bg_worker = BackgroundWorker(event_bus)
 ws_manager = WebSocketManager(event_bus)
 db_manager = DBManager("app/db/toto.db")
 
-bg_worker.start()
+#bg_worker.start()
 
 core = Core(event_bus, bg_worker, scheduler, db_manager)
 

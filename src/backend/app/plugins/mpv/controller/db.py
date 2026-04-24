@@ -99,6 +99,7 @@ class MPVDb:
             WHERE id = ?
             """
         , [id,])
+        return movie
     
     async def add_movie(self, movie: dict):
         """
@@ -239,10 +240,10 @@ class MPVDb:
             return None
 
         return {
-            "mpv_series_title": rows[0]["mpv_series_title"],
-            "season_title": rows[0]["season_title"],
-            "air_date": rows[0]["air_date"],
-            "poster_path": rows[0]["poster_path"],
+            "mpv_series_title": mpv_series[0]["mpv_series_title"],
+            "season_title": mpv_series[0]["season_title"],
+            "air_date": mpv_series[0]["air_date"],
+            "poster_path": mpv_series[0]["poster_path"],
             "mpv_episodes": [
                 {
                     "id": row["id"],
@@ -318,7 +319,7 @@ class MPVDb:
         for s in mpv_series:
             await self.add_mpv_series(mpv_series, mpv_series["mpv_seasons"])
 
-    async def get_continue_watching_mpv_movies(self):
+    async def get_continue_watching_movies(self):
         """
         returns in order of last watched all simple mpv_movies which are 
         not completed and progress > 0
@@ -335,7 +336,7 @@ class MPVDb:
 
         return mpv_movies
 
-    async def get_continue_watching_mpv_series(self):
+    async def get_continue_watching_series(self):
         """
         returns in order of last watched all mpv_series which are 
         not completed and progress > 0
@@ -373,3 +374,40 @@ class MPVDb:
         )
 
         return mpv_series
+
+    async def get_details_from_path(self, file_path: str):
+        """
+        returns id and media type which matches the file path
+        (or none)
+        """
+        movie = await self.db.fetch_one(
+            """
+            SELECT id FROM mpv_movies
+            WHERE file_path = ?
+            """
+        , [file_path,])
+        if movie:
+            return {"id": movie["id"], "type": "movie"}
+
+        episode = await self.db.fetch_one(
+            """
+            SELECT series.id AS id, seasons.season_number AS season_number,
+            episodes.episode_number AS episode_number
+            WHERE file_path = ?
+            """
+        , [file_path,])
+        if episode:
+            return {"type": "episode", "series_id": episode["id"], "season_number": episode["season_number"],
+            "episode_number": episode["episode_number"]}
+
+        return None
+
+    async def get_episode_details(self, series_id: int, season_num: int, episode_num: int):
+        """
+        returns episode details
+        """
+        episode = await self.db.fetch_one(
+            """
+            SELECT 
+            """
+        )

@@ -1,6 +1,6 @@
 from app.schemas.base_plugin import BasePlugin
 from app.plugins.mpv.routes import MPVRouter
-from app.plugins.mpv.controller import MPVController
+from app.plugins.mpv.controller.controller import MPVController
 
 class MPVPlugin(BasePlugin):
     def setup(self, core):
@@ -12,3 +12,6 @@ class MPVPlugin(BasePlugin):
 
     def get_ws_events(self):
         return []
+
+    def get_name(self):
+        return "mpv"

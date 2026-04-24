@@ -2,6 +2,7 @@
 registers all plugins in app/plugins folder
 each plugin is a folder which must contain a plugin.py file
     this file must contain a class for the plugin which must have
+    get_name(),
     setup(core), get_router() and get_ws_events()
 """
 
@@ -16,7 +17,7 @@ class PluginManager:
     def __init__(self, core: Core, app: FastAPI, ws_manager: WebSocketManager):
         self.core = core
         self.app = app
-        self.router = router
+        self.router = app.router
         self.ws_manager = ws_manager
 
     def register_plugins(self) -> None:
@@ -24,22 +25,23 @@ class PluginManager:
         registers plugins
         sets them up with core and adds to router
         """
-        for dirpath, dirnames, filenames in os.walk("src/backend/app/plugins/"):
+        for dirpath, dirnames, filenames in os.walk("app/plugins/"):
             if 'plugin.py' in filenames:
+                print("found")
                 # each folder in plugins with a plugin.py file
                 plugin = self.get_plugin_object(dirpath + "/plugin.py")
                 plugin.setup(self.core)
-                self.add_router(plugin)
+                self.add_router(plugin, plugin.get_name())
                 self.ws_manager.forward_many(plugin.get_ws_events())
 
 
-    def add_router(self, plugin) -> None:
+    def add_router(self, plugin, name) -> None:
         """
         adds plugins routes to the http router
         takes in plugin class
         """
         try:
-            self.app.include_router(plugin.get_router())
+            self.app.include_router(plugin.get_router(), prefix=f"/{name}", tags=[name])
         except AttributeError:
             raise ValueError(f"No get_router() in: {type(plugin).__name__}")
 
@@ -62,5 +64,3 @@ class PluginManager:
 
         Plugin = classes[0]
         return Plugin()
-        
-test = PluginManager()
