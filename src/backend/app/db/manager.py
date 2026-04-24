@@ -21,17 +21,16 @@ class DBManager:
         fetches single row from SELECT query
         """
         async with aiosqlite.connect(self.path) as db:
+            db.row_factory = aiosqlite.Row
             async with db.execute(sql=query, parameters=params) as cursor:
-                return cursor.fetch_one()
+                return await cursor.fetch_one()
 
     async def fetch_all(self, query: str, params: list = None):
         """
         fetches everything from a SELECT query
         """
-        data = []
-
         async with aiosqlite.connect(self.path) as db:
+            db.row_factory = aiosqlite.Row
             async with db.execute(sql=query, parameters=params) as cursor:
-                async for row in cursor:
-                    data.append(row.fetch_all)
+                return await cursor.fetch_all()
     

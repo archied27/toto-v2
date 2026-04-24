@@ -1,2 +1,2 @@
 class SimpleMovie:
-    
+    pass
