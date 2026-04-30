@@ -60,7 +60,7 @@ class MPVSocket:
         """
         sets the pause to true or false
         """
-        response = self.send_command("set_property", ["pause", pause])
+        self.send_command("set_property", ["pause", pause])
 
     def get_progress(self):
         """
@@ -68,3 +68,9 @@ class MPVSocket:
         """
         response = self.send_command("get_property", ["playback-time"])
         return response['data']
+
+    def quit_instance(self):
+        """
+        quits current mpv instance
+        """
+        self.send_command("quit")

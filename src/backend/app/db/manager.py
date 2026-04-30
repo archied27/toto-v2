@@ -8,15 +8,16 @@ class DBManager:
     def __init__(self, db_path):
         self.path = db_path
 
-    async def execute(self, query: str, params: list):
+    async def execute(self, query: str, params: list = None):
         """
         executes INSERT/UPDATE/DELETE
         """
         async with aiosqlite.connect(self.path) as db:
-            await db.execute(sql=query, parameters=params)
+            cursor = await db.execute(sql=query, parameters=params)
             await db.commit()
+            return cursor.lastrowid
 
-    async def fetch_one(self, query: str, params: list):
+    async def fetch_one(self, query: str, params: list = None):
         """
         fetches single row from SELECT query
         """

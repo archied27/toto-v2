@@ -20,17 +20,16 @@ class PluginManager:
         self.router = app.router
         self.ws_manager = ws_manager
 
-    def register_plugins(self) -> None:
+    async def register_plugins(self) -> None:
         """
         registers plugins
         sets them up with core and adds to router
         """
         for dirpath, dirnames, filenames in os.walk("app/plugins/"):
             if 'plugin.py' in filenames:
-                print("found")
                 # each folder in plugins with a plugin.py file
                 plugin = self.get_plugin_object(dirpath + "/plugin.py")
-                plugin.setup(self.core)
+                await plugin.setup(self.core)
                 self.add_router(plugin, plugin.get_name())
                 self.ws_manager.forward_many(plugin.get_ws_events())
 

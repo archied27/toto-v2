@@ -65,7 +65,7 @@ class WebSocketManager:
             await self.broadcast({"type": event, "data": data})
         self.event_bus.on(event, handler)
 
-    async def forward_many(self, events: list[str]):
+    def forward_many(self, events: list[str]):
         """
         forwards multiple event bus events to all websocket clients
         """

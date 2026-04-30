@@ -2,7 +2,103 @@
 handles communication with tmdb api
 """
 
+import asyncio
+import aiohttp
+
 class TMDBApiController:
     def __init__(self, api_key):
         self.api_key = api_key
         self.base_url = 'https://api.themoviedb.org/3'
+
+    async def get_movie_details(self, id: int):
+        """
+        fetches and returns movie details
+        """
+        data = None
+        logo_path = None
+
+        url = f"{self.base_url}/movie/{id}"
+        params = {"api_key": self.api_key}
+
+        image_url = url + "/images"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                response.raise_for_status()
+                if response.status == 200:
+                    data = await response.json()
+
+            async with session.get(image_url, params=params) as response:
+                response.raise_for_status()
+                if response.status == 200:
+                    img_data = await response.json()
+
+                    best = -1.0
+                    for logo in img_data["logos"]:
+                        if (logo["iso_639_1"] == "en") and (logo["vote_average"] > best):
+                            logo_path = logo["file_path"]
+
+        if data == None:
+            return None
+
+        return {"title": data["title"], "poster_path": data["poster_path"], 
+        "backdrop_path": data["backdrop_path"], "description": data["overview"],
+        "release_date": data["release_date"], "logo_path": logo_path}
+
+    async def get_series_details(self, id: int):
+        """
+        fetches and returns series details
+        """
+        data = None
+        logo_path = None
+
+        url = f"{self.base_url}/tv/{id}"
+        params = {"api_key": self.api_key}
+
+        image_url = url + "/images"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                response.raise_for_status()
+                if response.status == 200:
+                    data = await response.json()
+
+            async with session.get(image_url, params=params) as response:
+                response.raise_for_status()
+                if response.status == 200:
+                    img_data = await response.json()
+
+                    best = -1.0
+                    for logo in img_data["logos"]:
+                        if (logo["iso_639_1"] == "en") and (logo["vote_average"] > best):
+                            logo_path = logo["file_path"]
+
+        if data == None:
+            return None
+
+        return {"title": data["name"], "poster_path": data["poster_path"],
+        "logo_path": logo_path, "id": id}
+
+    async def get_season_details(self, series_id: int, season_num: int):
+        """
+        fetches and returns season details
+        """
+        data = None
+
+        url = f"{self.base_url}/tv/{series_id}/season/{season_num}"
+        params = {"api_key": self.api_key}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                response.raise_for_status()
+                if response.status == 200:
+                    data = await response.json()
+
+        if data == None:
+            return None
+
+        episodes = []
+        for episode in data["episodes"]:
+            episodes.append({"episode_num": episode["episode_number"], "title": episode["name"],
+            "description": episode["overview"], "still_path": episode["still_path"]})
+        return ({"title": data["name"], "air_date": data["air_date"], "poster_path": data["poster_path"]}, episodes)

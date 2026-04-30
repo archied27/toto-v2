@@ -3,9 +3,10 @@ from app.plugins.mpv.routes import MPVRouter
 from app.plugins.mpv.controller.controller import MPVController
 
 class MPVPlugin(BasePlugin):
-    def setup(self, core):
+    async def setup(self, core):
         self.controller = MPVController(core)
         self.router = MPVRouter(self.controller)
+        await self.controller.setup()
 
     def get_router(self):
         return self.router.router

@@ -27,7 +27,7 @@ class MPVDb:
             duration_seconds INTEGER NOT NULL,
             progress_seconds INTEGER DEFAULT 0,
             completed INTEGER DEFAULT 0,
-            last_watched DATETIME
+            last_watched DATETIME DEFAULT NULL
             )
             """)
 
@@ -36,7 +36,8 @@ class MPVDb:
             CREATE TABLE IF NOT EXISTS mpv_series(
             id INTEGER PRIMARY KEY,
             title TEXT,
-            poster_path TEXT
+            poster_path TEXT,
+            logo_path TEXT
             )
             """
         )
@@ -44,7 +45,7 @@ class MPVDb:
         await self.db.execute(
             """
             CREATE TABLE IF NOT EXISTS mpv_seasons(
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             season_number INTEGER NOT NULL,
             series_id INTEGER NOT NULL,
             title TEXT,
@@ -58,7 +59,7 @@ class MPVDb:
         await self.db.execute(
             """
             CREATE TABLE IF NOT EXISTS  mpv_episodes(
-            id INTEGER PRIMARY KEY,,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             episode_number INTEGER NOT NULL,
             season_id INTEGER NOT NULL,
             title TEXT,
@@ -67,7 +68,7 @@ class MPVDb:
             file_path TEXT,
             duration_seconds INTEGER,
             progress_seconds INTEGER NOT NULL DEFAULT 0,
-            last_watched DATETIME,
+            last_watched DATETIME DEFAULT NULL,
             completed INTEGER DEFAULT 0,
             FOREIGN KEY (season_id) REFERENCES mpv_seasons(id) ON DELETE CASCADE
             )
@@ -108,20 +109,19 @@ class MPVDb:
         await self.db.execute(
             """
             INSERT OR IGNORE INTO mpv_movies (id, title, poster_path, backdrop_path, 
-            logo_path, description, release_date, file_path, duration_seconds,
-            last_watched)
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            logo_path, description, release_date, file_path, duration_seconds)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         , [ movie["id"], movie["title"], movie["poster_path"], movie["backdrop_path"],
         movie["logo_path"], movie["description"], movie["release_date"], movie["file_path"],
-        movie["duration_seconds"], movie["last_watched"] ])
+        movie["duration_seconds"] ])
 
-    async def add_mpv_movies_bulk(self, mpv_movies: [dict]):
+    async def add_movies_bulk(self, movies: [dict]):
         """
         adds mpv_movies in bulk
         takes in an array of movie dicts
         """
-        async for movie in mpv_movies:
+        for movie in movies:
             await self.add_movie(movie)
 
     async def update_movie_progress(self, id: int, progress: int, last_watched: datetime, completed: bool = None):
@@ -158,7 +158,7 @@ class MPVDb:
 
     async def delete_mpv_movies_bulk(self, ids: [int]):
         """
-        deletes all mpv_movies in list of id's
+        deletes all movies in list of id's
         """
         await self.db.execute(
             """
@@ -169,7 +169,7 @@ class MPVDb:
 
     async def get_mpv_series(self):
         """
-        fetches all mpv_series with simple details
+        fetches all series with simple details
         (including next/current episode details) 
         """
         mpv_series = await self.db.fetch_all(
@@ -209,7 +209,7 @@ class MPVDb:
         fetches a full mpv_series in context of the season
         i.e mpv_series details and full season and other season
         """
-        mpv_series = await self.db.fetch_all(
+        series = await self.db.fetch_all(
             """
             SELECT mpv_series.title,
             mpv_seasons.title, mpv_seasons.air_date, mpv_seasons.poster_path,
@@ -226,24 +226,24 @@ class MPVDb:
             """
         , [series_id, season_id])
 
-        other_mpv_seasons = await self.db.fetchall(
+        other_seasons = await self.db.fetchall(
             """
             SELECT id, season_number
-            FROM mpv_seasons
+            FROM mpv_seasonst/{id
             WHERE series_id = ?
             AND id != ?
             ORDER BY season_number ASC
             """
         , [series_id, season_id])
 
-        if not mpv_series:
+        if not series:
             return None
 
         return {
-            "mpv_series_title": mpv_series[0]["mpv_series_title"],
-            "season_title": mpv_series[0]["season_title"],
-            "air_date": mpv_series[0]["air_date"],
-            "poster_path": mpv_series[0]["poster_path"],
+            "mpv_series_title": series[0]["mpv_series_title"],
+            "season_title": series[0]["season_title"],
+            "air_date": series[0]["air_date"],
+            "poster_path": series[0]["poster_path"],
             "mpv_episodes": [
                 {
                     "id": row["id"],
@@ -255,69 +255,76 @@ class MPVDb:
                     "progress_seconds": row["progress_seconds"],
                     "completed": row["completed"]
                 }
-                for row in mpv_series
+                for row in series
             ],
             "other_mpv_seasons": [
                 {
                     "id": row["id"],
                     "season_number": row["season_number"]
                 }
-                for row in other_mpv_seasons
+                for row in other_seasons
             ]
         }
 
     async def add_episode(self, season_id: int, episode: dict):
         """
-        adds single episode in to a season
+        adds an episode to the database
+        episode is {episode_num, title, description, still_path,
+        file_path, duration_seconds}
         """
         await self.db.execute(
             """
-            INSERT OR IGNORE INTO mpv_episodes (id, episode_number, season_id, 
+            INSERT OR IGNORE INTO mpv_episodes (episode_number, season_id,
             title, description, still_path, file_path, duration_seconds)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """
-        , [episode["id"], season_id, episode["title"], episode["description"],
-        episode["still_path"], episode["file_path"], episode["duration_seconds"]])
+        , [episode["episode_num"], season_id, episode["title"], 
+        episode["description"], episode["still_path"], episode["file_path"],
+        episode["duration_seconds"]])
 
-    async def add_season(self, series_id: int, season: dict, mpv_episodes: [dict] = []):
+    async def add_season(self, series_id: int, season: dict):
         """
-        adds season and optionally mpv_episodes in to database
+        adds a season to the database
+        season is {season_number, title, air_date, poster_path,
+        [episodes]} where episodes is the same as add_episode
         """
-        await self.db.execute(
+        season_id = await self.db.execute(
             """
-            INSERT OR IGNORE INTO mpv_seasons (id, season_number, series_id,
+            INSERT OR IGNORE INTO mpv_seasons (season_number, series_id,
             title, air_date, poster_path)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """
-        , [season["id"], season["number"], series_id, season["title"],
+        , [season["season_number"], series_id, season["title"],
         season["air_date"], season["poster_path"]])
 
-        for episode in mpv_episodes:
-            await self.add_episode(season["id"], episode)
+        if season_id and season["episodes"]:
+            for ep in season["episodes"]:
+                await self.add_episode(season_id, ep)
 
-    async def add_mpv_series(self, mpv_series: dict, mpv_seasons: [dict] = []):
+    async def add_series(self, series: dict):
         """
-        adds mpv_series and optionally mpv_seasons and mpv_episodes in
-        mpv_seasons dicts can optionally have mpv_episodes array
+        adds a series to the database
+        series is {id, title, poster_path, logo_path, [seasons]}
+        where seasons is the same as add_season
         """
         await self.db.execute(
             """
-            INSERT OR IGNORE INTO mpv_series (id, title, poster_path)
-            VALUES (?, ?, ?)
+            INSERT OR IGNORE INTO mpv_series (id, title, poster_path, logo_path)
+            VALUES (?, ?, ?, ?)
             """
-        , [mpv_series["id"], mpv_series["title"], mpv_series["poster_path"]])
+        , [series["id"], series["title"], series["poster_path"],
+        series["logo_path"]])
 
-        for season in mpv_seasons:
-            mpv_episodes = season["mpv_episodes"]
-            await self.add_season(mpv_series["id"], season, mpv_episodes)
+        if series["seasons"]:
+            for season in series["seasons"]:
+                await self.add_season(series["id"], season)
 
-    async def add_mpv_series_bulk(self, mpv_series: [dict]):
+    async def add_series_bulk(self, series: [dict]):
         """
-        adds mpv_series in bulk
-        mpv_series dicts can optionally have mpv_seasons array
+        adds array of series
         """
-        for s in mpv_series:
-            await self.add_mpv_series(mpv_series, mpv_series["mpv_seasons"])
+        for s in series:
+            await self.add_series(s)
 
     async def get_continue_watching_movies(self):
         """
@@ -391,8 +398,10 @@ class MPVDb:
 
         episode = await self.db.fetch_one(
             """
-            SELECT series.id AS id, seasons.season_number AS season_number,
-            episodes.episode_number AS episode_number
+            SELECT mpv_series.id AS id, mpv_seasons.season_number AS season_number,
+            mpv_episodes.episode_number AS episode_number
+            FROM mpv_series JOIN mpv_seasons ON (mpv_series.id  = mpv_seasons.series_id)
+            JOIN mpv_episodes ON (mpv_seasons.id = mpv_episodes.season_id)
             WHERE file_path = ?
             """
         , [file_path,])
@@ -408,6 +417,12 @@ class MPVDb:
         """
         episode = await self.db.fetch_one(
             """
-            SELECT 
+            SELECT mpv_series.title AS title, mpv_episodes.episode_number AS episode_num,
+            mpv_seasons.season_number AS season_num, mpv_episodes.duration AS duration,
+            mpv_seasons.poster_path AS poster_path
+            FROM mpv_episodes JOIN mpv_seasons ON (mpv_episodes.season_id = mpv_seasons.id)
+            JOIN mpv_series ON (mpv_seasons.series_id = mpv_series.id)
             """
         )
+
+        return episode

@@ -86,6 +86,7 @@ class BackgroundWorker:
         except Exception as e:
             task.status = "failed"
             task.error = str(e)
+            print(f"ERROR: {e}")
             await self.event_bus.emit("task.failed", task)
 
 class Task:
@@ -101,4 +102,4 @@ class Task:
     async def update(self, progress: float, message: str):
         self.progress = progress
         self.message = message
-        self.event_bus.emit("task.progress", self)
+        await self.bus.emit("task.progress", self)
