@@ -3,9 +3,15 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
+import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src")
+    }
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -13,11 +19,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon.ico', 'icons/*.png'],
       manifest: {
-        name: 'My App',
-        short_name: 'MyApp',
+        name: 'Toto',
+        short_name: 'Toto',
         description: 'My application',
         theme_color: '#000000',
-        background_color: '#ffffff',
+        background_color: '#000000',
         display: 'standalone',
         start_url: '/',
         icons: [

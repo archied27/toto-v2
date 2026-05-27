@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Swiper, SwiperSlide } from 'swiper/react'
 
 interface Page {
     id: string
-    component: React.ReactNode
+    component: React.ComponentType
 }
 
 interface SwipeNavigatorProps {
@@ -12,7 +12,7 @@ interface SwipeNavigatorProps {
     onPageChange: (index: number) => void
 }
 
-export default function SwipeNavigator({ pages, currentIndex, onPageChange }: SwipeNavigatorProps)
+export default function SwipeNavigator({ pages, onPageChange }: SwipeNavigatorProps)
 {
     const [activeIndex, setActiveIndex] = useState(0)
 
@@ -32,6 +32,7 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
             }}>
             {pages.map((page, index) => {
                 const isActive = index === activeIndex
+                const PageComponent = page.component
 
                 return (
                     <SwiperSlide key={page.id}>
@@ -45,13 +46,12 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
                         className={[
                             "h-full overflow-hidden bg-card",
                             isActive ? "rounded-none": "rounded-3xl",
-                            "shadow-[0_0_0_1px_hsl(var(--border))]",
                             "transition-all duration-300",
                             isActive ? "scale-100" : "scale-[0.97]"
                         ].join(" ")}
                         >
                         <div className="h-full overflow-y-auto">
-                            {page.component}
+                            <PageComponent />
                         </div>
                         </div>
                     </div>

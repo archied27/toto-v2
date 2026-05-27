@@ -1,68 +1,26 @@
 import { useState } from 'react'
-import PageContainer from './components/PageContainer'
+import { plugins } from './plugins'
 import SwipeNavigator from './components/SwipeNavigator'
+import DotsIndicator from './components/DotsIndicator'
+import DashboardPage from './dashboard/DashboardPage'
 
-const testPages = [
-  {
-    id: 'dashboard',
-    component: (
-      <div 
-      className='bg-background text-foreground'
-      style={{ 
-        height: '100%', 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px'
-      }}>
-        Dashboard (no scroll)
-      </div>
-    )
-  },
-  {
-    id: 'tasks',
-    component: (
-      <div style={{ background: '#16213e', color: 'white', padding: '24px' }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Tasks (scrollable)</h1>
-        {Array.from({ length: 30 }, (_, i) => (
-          <div key={i} style={{ 
-            padding: '16px', 
-            marginBottom: '8px', 
-            background: '#0f3460',
-            borderRadius: '8px'
-          }}>
-            Task item {i + 1}
-          </div>
-        ))}
-      </div>
-    )
-  },
-  {
-    id: 'spotify',
-    component: (
-      <div style={{ 
-        height: '200%',  // deliberately tall to test scroll
-        background: '#0d7377',
-        color: 'white',
-        padding: '24px'
-      }}>
-        <h1>Spotify (scrollable)</h1>
-        <p>This page is very tall. You should be able to scroll down.</p>
-      </div>
-    )
-  },
+const pages = [
+  {"id": "dashboard", "component": DashboardPage},
+  ...plugins.map(p => ({ id: p.id, component: p.page }))
 ]
 
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isCommandBar, setIsCommandBar] = useState(false)
 
   return (
-    <div className="h-screen bg-background pt-[env(safe-area-inset-top)]">
+    <div className="dark h-screen bg-background pt-[env(safe-area-inset-top)]">
       <SwipeNavigator
-        pages={testPages}
+        pages={pages}
         currentIndex={currentIndex}
         onPageChange={setCurrentIndex}
       />
+      <DotsIndicator currentIndex={currentIndex} total={pages.length} onClick={() => setIsCommandBar(prevIsCommandBar => !prevIsCommandBar)}/>
     </div>
   )
 }
