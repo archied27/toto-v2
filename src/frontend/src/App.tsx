@@ -5,15 +5,14 @@ import SwipeNavigator from './components/SwipeNavigator'
 const testPages = [
   {
     id: 'dashboard',
-    scrollable: false,
     component: (
-      <div style={{ 
+      <div 
+      className='bg-background text-foreground'
+      style={{ 
         height: '100%', 
-        background: '#1a1a2e',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'white',
         fontSize: '24px'
       }}>
         Dashboard (no scroll)
@@ -22,7 +21,6 @@ const testPages = [
   },
   {
     id: 'tasks',
-    scrollable: true,
     component: (
       <div style={{ background: '#16213e', color: 'white', padding: '24px' }}>
         <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Tasks (scrollable)</h1>
@@ -41,7 +39,6 @@ const testPages = [
   },
   {
     id: 'spotify',
-    scrollable: true,
     component: (
       <div style={{ 
         height: '200%',  // deliberately tall to test scroll
@@ -60,14 +57,13 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   return (
-    <PageContainer>
+    <div className="h-screen bg-background pt-[env(safe-area-inset-top)]">
       <SwipeNavigator
         pages={testPages}
         currentIndex={currentIndex}
         onPageChange={setCurrentIndex}
       />
-      
-    </PageContainer>
+    </div>
   )
 }
 
