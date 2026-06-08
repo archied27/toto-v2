@@ -25,8 +25,9 @@ class MPVController:
         self.movie_dirs = data["movie-dirs"]
         self.series_dirs = data["series-dirs"]
 
-        self.core.bg_worker.register_handler("mpv.add_movies", self.get_movies)
-        self.core.bg_worker.register_handler("mpv.add_series", self.get_series)
+        self.core.bg_worker.register_handler("mpv.add_movies", self.add_movies)
+        self.core.bg_worker.register_handler("mpv.add_series", self.add_series)
+        self.core.bg_worker.register_handler("mpv.cleanup_db", self.cleanup_db)
 
         await self.db.initialise_db()
 
@@ -35,8 +36,19 @@ class MPVController:
         syncs the database with files on computer
         background task
         """
+        await self.core.bg_worker.add_task("mpv.cleanup_db")
+
         await self.core.bg_worker.add_task("mpv.add_series")
-        #await self.core.bg_worker.add_task("mpv.add_movies")
+        await self.core.bg_worker.add_task("mpv.add_movies")
+    
+    async def cleanup_db(self, task: Task):
+        """
+        removes all db entries where file no longer exists
+        """
+        await task.update(0.0, "Cleaning Up Movies...")
+        await self.cleanup_movies()
+        await task.update(0.5, "Cleaning Up Series...")
+        await self.cleanup_series()
 
     def toggle_pause(self):
         """
@@ -47,13 +59,12 @@ class MPVController:
             self.socket_manager.set_pause(not current)
 
     def play(self, file_path: str, duration: int):
-        subprocess.Popen(["mpv", f"start={duration}", file_path, "-fs", f"--input-ipc-server={self.socket_manager.socket}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        subprocess.Popen(["mpv", f"--start={duration}", file_path, "-fs", f"--input-ipc-server={self.socket_manager.socket}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
     async def get_being_played(self):
         """
         returns details about currently playing
         """
-
         file = self.socket_manager.get_current_file()
         if file != None:
             details = await self.db.get_details_from_path(file)
@@ -76,7 +87,40 @@ class MPVController:
             else:
                 return None
 
-    async def get_movies(self, task: Task):
+    async def cleanup_movies(self):
+        """
+        removes all movies from db if file not present
+        """
+        db_movies = await self.db.get_movies()
+        for movie in db_movies:
+            if not os.path.isfile(movie["file_path"]):
+                await self.db.delete_movie(movie["id"])
+
+    async def cleanup_series(self):
+        """
+        removes all episodes from db if file not present
+        if a season has no episodes, removes from db
+        if a series has no seasons, removes from db
+        """
+        db_episodes = await self.db.get_episodes()
+        for episode in db_episodes:
+            if not os.path.isfile(episode["file_path"]):
+                await self.db.delete_episode(episode["id"])
+                # if season has no episodes
+                print(await self.db.get_seasons_episodes(episode["season_id"]))
+                # if len(await self.db.get_seasons_episodes(episode["season_id"])) == 0:
+                #     await self.db.delete_season(episode["season_id"])
+                #     # if series has no seasons
+                #     if len(await self.db.get_series_seasons(episode["series_id"])) == 0:
+                #         await self.db.delete_series()
+
+    async def get_all_movies(self):
+        """
+        returns array of all movies, sorted
+        """
+
+
+    async def add_movies(self, task: Task):
         """
         adds an array of all movies found to db
         """
@@ -88,22 +132,24 @@ class MPVController:
                 count = 0
                 for f in os.listdir(path):
                     if ".mkv" in f:
-                        file = str(os.path.join(path, f))
-                        data = await self.tmdb.get_movie_details(int(f[:-4]))
-                        data["id"] = f[:-4]
-                        data["file_path"] = file
-                        data["duration_seconds"] = self.get_duration(file)
+                        if not (await self.db.get_movie(int(f[:-4]))):
+                            file = str(os.path.join(path, f))
+                            data = await self.tmdb.get_movie_details(int(f[:-4]))
+                            data["id"] = f[:-4]
+                            data["file_path"] = file
+                            data["duration_seconds"] = self.get_duration(file)
+                            movies.append(data)
 
-                        count+=1
-                        await task.update((count/total_files)*100, f"Found {data["title"]}")
+                            count+=1
+                            await task.update((count/total_files)*100, f"Found {data["title"]}")
 
-                        print(f"{round((count/total_files)*100)} %, Found {data["title"]}")
-
-                        movies.append(data)
-
+                            print(f"{round((count/total_files)*100)} %, Found {data["title"]}")
+                        else:
+                            count+=1
+                            
         await self.db.add_movies_bulk(movies)
 
-    async def get_series(self, task: Task):
+    async def add_series(self, task: Task):
         """
         adds all series to db
         """

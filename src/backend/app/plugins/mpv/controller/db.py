@@ -75,14 +75,14 @@ class MPVDb:
             """
         )
 
-    async def get_mpv_movies(self):
+    async def get_movies(self):
         """
         fetches all mpv_movies with simple details
         """
         mpv_movies = await self.db.fetch_all(
             """
             SELECT id, title, poster_path, release_date, 
-            duration_seconds, progress_seconds, completed
+            duration_seconds, progress_seconds, completed, file_path
             FROM mpv_movies
             """
         )
@@ -426,3 +426,79 @@ class MPVDb:
         )
 
         return episode
+
+    async def get_episodes(self):
+        """
+        returns a list of all episodes
+        """
+        episodes = await self.db.fetch_all(
+            """
+            SELECT mpv_episodes.id AS id, mpv_episodes.file_path AS file_path,
+            mpv_episodes.season_id AS season_id, mpv_seasons.series_id AS series_id
+            FROM mpv_episodes JOIN mpv_seasons ON (mpv_episodes.season_id = 
+            mpv_seasons.id)
+            GROUP BY mpv_episodes.id
+            """
+        )
+        return episodes
+
+    async def delete_episode(self, id: int):
+        """
+        deletes an episode from db
+        """
+        await self.db.execute(
+            """
+            DELETE FROM mpv_episodes
+            WHERE id = ?
+            """
+        , [id,])
+
+    async def get_seasons_episodes(self, id: int):
+        """
+        returns a seasons episodes
+        """
+        episodes = await self.db.fetch_all(
+            """
+            SELECT mpv_episodes.id
+            FROM mpv_seasons JOIN mpv_episodes ON 
+            (mpv_seasons.id = mpv_episodes.season_id)
+            WHERE mpv_seasons.id = ?
+            """
+        , [id,])
+        return episodes
+
+    async def delete_season(self, id: int):
+        """
+        deletes a season from db
+        """
+        await self.db.execute(
+            """
+            DELETE FROM mpv_seasons
+            WHERE id = ?
+            """
+        , [id,])
+
+    async def get_series_seasons(self, id: int):
+        """
+        returns a series seasons
+        """
+        seasons = await self.db.fetch_all(
+            """
+            SELECT mpv_seasons.id
+            FROM mpv_series JOIN mpv_seasons ON
+            (mpv_seasons.series_id = mpv_series.id)
+            WHERE mpv_series.id = ?
+            """
+        , [id,])
+        return seasons
+
+    async def delete_series(self, id: int):
+        """
+        deletes series from db
+        """
+        await self.db.execute(
+            """
+            DELETE FROM mpv_series
+            WHERE id = ?
+            """
+        , [id,])

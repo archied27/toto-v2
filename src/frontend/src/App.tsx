@@ -3,6 +3,7 @@ import { plugins } from './plugins'
 import SwipeNavigator from './components/SwipeNavigator'
 import DotsIndicator from './components/DotsIndicator'
 import DashboardPage from './dashboard/DashboardPage'
+import { WebSocketProvider } from './components/WebSocketContext'
 
 const pages = [
   {"id": "dashboard", "component": DashboardPage},
@@ -15,12 +16,14 @@ function App() {
 
   return (
     <div className="dark h-screen bg-background pt-[env(safe-area-inset-top)]">
-      <SwipeNavigator
-        pages={pages}
-        currentIndex={currentIndex}
-        onPageChange={setCurrentIndex}
-      />
-      <DotsIndicator currentIndex={currentIndex} total={pages.length} onClick={() => setIsCommandBar(prevIsCommandBar => !prevIsCommandBar)}/>
+      <WebSocketProvider url={import.meta.env.VITE_WS_URL}>
+        <SwipeNavigator
+          pages={pages}
+          currentIndex={currentIndex}
+          onPageChange={setCurrentIndex}
+        />
+        <DotsIndicator currentIndex={currentIndex} total={pages.length} onClick={() => setIsCommandBar(prevIsCommandBar => !prevIsCommandBar)}/>
+      </WebSocketProvider>
     </div>
   )
 }

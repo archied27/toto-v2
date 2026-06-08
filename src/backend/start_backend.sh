@@ -4,6 +4,8 @@ trap "kill 0" EXIT
 
 echo "Starting Toto Backend..."
 source .venv/bin/activate
-uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
+uvicorn main:app --host 0.0.0.0 --port 8000 \
+  --ssl-keyfile ../certs/archlinux.tail802449.ts.net.key \
+  --ssl-certfile ../certs/archlinux.tail802449.ts.net.crt &
 
 wait

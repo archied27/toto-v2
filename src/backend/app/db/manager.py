@@ -24,7 +24,7 @@ class DBManager:
         async with aiosqlite.connect(self.path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute(sql=query, parameters=params) as cursor:
-                return await cursor.fetch_one()
+                return await cursor.fetchone()
 
     async def fetch_all(self, query: str, params: list = None):
         """
@@ -33,5 +33,5 @@ class DBManager:
         async with aiosqlite.connect(self.path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute(sql=query, parameters=params) as cursor:
-                return await cursor.fetch_all()
+                return await cursor.fetchall()
     
