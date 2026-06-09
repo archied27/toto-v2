@@ -10,6 +10,7 @@ from app.core.plugin_manager import PluginManager
 from app.core.scheduler import Scheduler
 from app.core.background_worker import BackgroundWorker
 from app.core.websocket_manager import WebSocketManager
+from app.services.dashboard.dashboard_service import DashboardService
 from app.db.manager import DBManager
 from app.core.core import Core
 
@@ -28,8 +29,14 @@ async def lifespan(app: FastAPI):
     db_manager = DBManager("app/db/toto.db")
     core = Core(event_bus, bg_worker, scheduler, db_manager, state)
 
+    ws_manager.forward("dashboard.changed")
+    dashboard = DashboardService(core)
+
+
     plugin_manager = PluginManager(core, app, ws_manager)
     await plugin_manager.register_plugins()
+
+    await dashboard.rerank()
 
     bg_task = asyncio.create_task(bg_worker.start())
 
@@ -41,7 +48,7 @@ async def lifespan(app: FastAPI):
 
     bg_worker.stop()
     bg_task.cancel()
-    
+
     try:
         await bg_task
     except asyncio.CancelledError:

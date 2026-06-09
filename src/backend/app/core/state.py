@@ -13,7 +13,7 @@ base_priority: int (0-100)
 
 import asyncio
 import inspect
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, is_dataclass
 
 @dataclass
 class AppState:
@@ -35,6 +35,9 @@ class AppState:
 
     def subscribe(self, fn: callable) -> None:
         self._subscribers.append(fn)
+
+    def get_all(self) -> Any:
+        return self._slices.items()
 
     async def snapshot(self) -> dict:
         """

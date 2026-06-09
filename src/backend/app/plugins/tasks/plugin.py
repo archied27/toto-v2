@@ -6,6 +6,7 @@ class TasksPlugin(BasePlugin):
     async def setup(self, core):
         self.controller = TasksController(core)
         self.router = TasksRouter(self.controller)
+        await core.state.set("tasks", {"dashboard_priority": 50})
 
     def get_router(self):
         return self.router.router
