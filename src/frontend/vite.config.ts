@@ -67,7 +67,7 @@ export default defineConfig({
       clientPort: 5173
     },
     watch: {
-      ignored: ['**/.env.*']
+      ignored: ['**/.env', '**/certs/**', path.resolve(__dirname, '../certs/**'),]
     }
   }
 })

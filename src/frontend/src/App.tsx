@@ -3,7 +3,7 @@ import { plugins } from './plugins'
 import SwipeNavigator from './components/SwipeNavigator'
 import DotsIndicator from './components/DotsIndicator'
 import DashboardPage from './dashboard/DashboardPage'
-import { WebSocketProvider } from './components/WebSocketContext'
+import { WebSocketProvider } from './hooks/WebSocketContext'
 
 const pages = [
   {"id": "dashboard", "component": DashboardPage},

@@ -25,7 +25,6 @@ export function useWebSocket(
         maxDelay=30_000,
     } : UseWebSocketOptions = {}
 ): UseWebSocketReturn {
-
     // states
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
     const [lastMessage, setLastMessage] = useState<unknown>(null);
@@ -51,7 +50,7 @@ export function useWebSocket(
 
         setConnectionStatus("connecting");
 
-        const ws = new WebSocket("url");
+        const ws = new WebSocket(url);
         wsRef.current = ws;
 
         ws.onopen = () => {
