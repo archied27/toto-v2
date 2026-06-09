@@ -4,6 +4,13 @@ plugin state information
 and core state information
 """
 
+"""
+plugin state must have:
+dashboard_priority: int (0-100)
+page_priority: int (0-100)
+base_priority: int (0-100)
+"""
+
 import asyncio
 import inspect
 from dataclasses import dataclass, field

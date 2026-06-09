@@ -1,4 +1,4 @@
-import { useWebSocket, type ConnectionStatus } from "@/hooks/useWebsocket";
+import { useWebSocket, type ConnectionStatus } from "@/hooks/useWebSocket";
 import { createContext, useContext, useEffect, useRef } from "react";
 
 export interface WSMessage {
