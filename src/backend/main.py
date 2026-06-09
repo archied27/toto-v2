@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import dotenv
 from app.core.event_bus import EventBus
+from app.core.state import AppState
 from app.core.plugin_manager import PluginManager
 from app.core.scheduler import Scheduler
 from app.core.background_worker import BackgroundWorker
@@ -20,11 +21,12 @@ extra_origins = [addr.strip() for addr in ip_addr.split(",") if addr.strip()]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     event_bus = EventBus()
+    state = AppState()
     scheduler = Scheduler(event_bus)
     bg_worker = BackgroundWorker(event_bus)
     ws_manager = WebSocketManager(event_bus)
     db_manager = DBManager("app/db/toto.db")
-    core = Core(event_bus, bg_worker, scheduler, db_manager)
+    core = Core(event_bus, bg_worker, scheduler, db_manager, state)
 
     plugin_manager = PluginManager(core, app, ws_manager)
     await plugin_manager.register_plugins()
@@ -32,12 +34,14 @@ async def lifespan(app: FastAPI):
     bg_task = asyncio.create_task(bg_worker.start())
 
     app.state.core = core
+    app.state.state = state
     app.state.ws_manager = ws_manager
 
     yield
 
     bg_worker.stop()
     bg_task.cancel()
+    
     try:
         await bg_task
     except asyncio.CancelledError:
