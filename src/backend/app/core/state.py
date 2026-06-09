@@ -6,6 +6,7 @@ and core state information
 
 import asyncio
 import inspect
+from dataclasses import dataclass, field
 
 @dataclass
 class AppState:
