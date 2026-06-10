@@ -14,3 +14,7 @@ class DashboardState:
     small_b: DashboardSlot = field(default_factory=DashboardSlot)
 
     last_ranked: datetime | None = None
+
+    @property
+    def slots(self):
+        return self.hero, self.long, self.small_a, self.small_b

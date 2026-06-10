@@ -13,7 +13,8 @@ base_priority: int (0-100)
 
 import asyncio
 import inspect
-from dataclasses import dataclass, field, is_dataclass
+from dataclasses import dataclass, field, is_dataclass, asdict
+from typing import Any
 
 @dataclass
 class AppState:
