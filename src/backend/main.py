@@ -36,8 +36,6 @@ async def lifespan(app: FastAPI):
     plugin_manager = PluginManager(core, app, ws_manager)
     await plugin_manager.register_plugins()
 
-    await dashboard.rerank()
-
     bg_task = asyncio.create_task(bg_worker.start())
 
     app.state.core = core

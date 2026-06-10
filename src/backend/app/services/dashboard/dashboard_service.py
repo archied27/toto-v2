@@ -9,35 +9,37 @@ class DashboardService:
         self.core.bus.on("dashboard.rerank", self.rerank)
 
     async def rerank(self) -> None:
-        change = False
+        new_state = DashboardState()
 
         for plugin_id, data in self.core.state.get_all():
             priority = data["dashboard_priority"]
 
-            if priority >= self.dashboard_state.hero.priority:
-                self.dashboard_state.hero.id = plugin_id
-                self.dashboard_state.hero.priority = priority
-                change = True
+            if priority != 0:
+                if priority >= new_state.hero.priority:
+                    new_state.hero.id = plugin_id
+                    new_state.hero.priority = priority
 
-            elif priority >= self.dashboard_state.long.priority:
-                self.dashboard_state.long.id = plugin_id
-                self.dashboard_state.long.priority = priority
-                change = True
+                elif priority >= new_state.long.priority:
+                    new_state.long.id = plugin_id
+                    new_state.long.priority = priority
 
-            elif priority >= self.dashboard_state.small_a.priority:
-                self.dashboard_state.small_a.id = plugin_id
-                self.dashboard_state.small_a.priority = priority
-                change = True
+                elif priority >= new_state.small_a.priority:
+                    new_state.small_a.id = plugin_id
+                    new_state.small_a.priority = priority
 
-            elif priority >= self.dashboard_state.small_b.priority:
-                self.dashboard_state.small_b.id = plugin_id
-                self.dashboard_state.small_b.priority = priority
-                change = True
-
-        await self.core.bus.emit("dashboard.changed")
+                elif priority >= new_state.small_b.priority:
+                    new_state.small_b.id = plugin_id
+                    new_state.small_b.priority = priority
         
-        self.dashboard_state.last_ranked = datetime.now(UTC)
+        new_state.last_ranked = datetime.now(UTC)
 
+        await self.handle_rerank(new_state)
+
+        
+    async def handle_rerank(self, new_state: DashboardState) -> None:
+        # slots have changed
+        if new_state.slots != self.dashboard_state.slots:
+            self.dashboard_state = new_state
+            await self.core.bus.emit("dashboard.changed", new_state.slots)
             
-
         
