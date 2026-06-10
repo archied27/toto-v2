@@ -11,28 +11,19 @@ class DashboardService:
     async def rerank(self) -> None:
         new_state = DashboardState()
 
-        for plugin_id, data in self.core.state.get_all():
-            priority = data["dashboard_priority"]
-
-            if priority != 0:
-                if priority >= new_state.hero.priority:
-                    new_state.hero.id = plugin_id
-                    new_state.hero.priority = priority
-
-                elif priority >= new_state.long.priority:
-                    new_state.long.id = plugin_id
-                    new_state.long.priority = priority
-
-                elif priority >= new_state.small_a.priority:
-                    new_state.small_a.id = plugin_id
-                    new_state.small_a.priority = priority
-
-                elif priority >= new_state.small_b.priority:
-                    new_state.small_b.id = plugin_id
-                    new_state.small_b.priority = priority
+        active_plugins = [
+            (plugin_id, data["dashboard_priority"])
+            for plugin_id, data in self.core.state.get_all()
+            if data.get("dashboard_priority", 0) != 0
+        ]
         
-        new_state.last_ranked = datetime.now(UTC)
+        active_plugins.sort(key=lambda x:x[1], reverse=True)
 
+        for slot, (plugin_id, priority) in zip(new_state.slots, active_plugins):
+            slot.id = plugin_id
+            slot.priority = priority
+
+        new_state.last_ranked = datetime.now(UTC)
         await self.handle_rerank(new_state)
 
         
