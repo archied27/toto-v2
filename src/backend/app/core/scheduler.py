@@ -37,6 +37,20 @@ class Scheduler:
         run_at = (datetime.now(ZoneInfo("Europe/London")) + timedelta(seconds=run_in))
         self.add(event_name, run_at, data)
 
+    def add_recurring(self, event_name: str, data: Any = None, **cron_kwargs):
+        """
+        adds recurring event to scheduler
+        uses cron-style scheduling
+        """
+        self.scheduler.add_job(
+            self.event_bus.emit,
+            trigger='cron',
+            next_run_time=run_at,
+            name=event_name,
+            args=[event_name, data],
+            **cron_kwargs
+        )
+
     def get_jobs(self) -> [Job]:
         """
         returns list of jobs scheduled
