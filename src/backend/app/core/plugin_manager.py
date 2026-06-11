@@ -31,7 +31,7 @@ class PluginManager:
                 plugin = self.get_plugin_object(dirpath + "/plugin.py")
                 await plugin.setup(self.core)
                 self.add_router(plugin, plugin.get_name())
-                self.ws_manager.forward_many(plugin.get_ws_events())
+                await self.ws_manager.forward_many(plugin.get_ws_events())
 
 
     def add_router(self, plugin, name) -> None:

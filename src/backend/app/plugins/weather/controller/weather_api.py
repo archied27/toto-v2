@@ -4,6 +4,7 @@ handles communication with open meteo api
 
 import aiohttp
 import asyncio
+from app.plugins.weather.schemas import WeatherAtTime, WeatherDaily, WeatherState
 
 class WeatherAPI:
     def __init__(self, longitude: float, latitude: float) -> None:
@@ -37,8 +38,8 @@ class WeatherAPI:
             if data is None:
                 return None
 
-            return parse_response(data)
-            
+            return self.parse_response(data)
+
         except Exception as e:
             print(f"Weather API Error: {e}")
             return None
@@ -50,37 +51,37 @@ class WeatherAPI:
         """
 
         parsed = {}
-        parsed["current_weather"] = {
-            "time": data["current"]["time"],
-            "temp": data["current"]["temperature_2m"],
-            "precip_mm": data["current"]["precipitation"],
-            "precip_prob": 100,
-            "uv": data["current"]["uv_index"],
-            "code": data["current"]["weather_code"],
-            "is_day": bool(data["current"]["is_day"])
-            }
+        parsed["current_weather"] = WeatherAtTime(
+            time = data["current"]["time"],
+            temp = data["current"]["temperature_2m"],
+            precip_mm = data["current"]["precipitation"],
+            precip_prob = 100,
+            uv = data["current"]["uv_index"],
+            code = data["current"]["weather_code"],
+            is_day = bool(data["current"]["is_day"])
+        )
         
         parsed["two_week_hourly"] = []
         # loops through every hour within forecast
         for i in range(len(data["hourly"]["time"])):
-            parsed["two_week_hourly"].append({
-                "time": data["hourly"]["time"][i],
-                "temp": data["hourly"]["temperature_2m"][i],
-                "precip_mm": data["hourly"]["precipitation"][i],
-                "precip_prob": data["hourly"]["precipitation_probability"][i],
-                "uv": data["hourly"]["uv_index"][i],
-                "code": data["hourly"]["weather_code"][i],
-                "is_day": bool(data["hourly"]["is_day"][i])
-            })
+            parsed["two_week_hourly"].append(WeatherAtTime(
+                time = data["hourly"]["time"][i],
+                temp = data["hourly"]["temperature_2m"][i],
+                precip_mm = data["hourly"]["precipitation"][i],
+                precip_prob = data["hourly"]["precipitation_probability"][i],
+                uv = data["hourly"]["uv_index"][i],
+                code = data["hourly"]["weather_code"][i],
+                is_day = bool(data["hourly"]["is_day"][i])
+            ))
 
         parsed["two_week_overview"] = []
         # loops through every day within forecast
         for i in range(len(data["daily"]["time"])):
-            parsed["two_week_overview"].append({
-                "time": data["daily"]["time"][i],
-                "max_temp": data["daily"]["temperature_2m_max"][i],
-                "min_temp": data["daily"]["temperature_2m_min"][i],
-                "code": data["daily"]["weather_code"][i]
-            })
+            parsed["two_week_overview"].append(WeatherDaily(
+                time = data["daily"]["time"][i],
+                max_temp = data["daily"]["temperature_2m_max"][i],
+                min_temp = data["daily"]["temperature_2m_min"][i],
+                code = data["daily"]["weather_code"][i]
+            ))
 
         return parsed

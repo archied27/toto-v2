@@ -6,7 +6,7 @@ class WeatherAtTime:
     time: str # iso8601 format
     temp: float
     precip_mm: float
-    precip_prob: float = 100 # default 100 for current weather
+    precip_prob: float
     uv: float
     code: int # weather code for icon and description
     is_day: bool # for icon

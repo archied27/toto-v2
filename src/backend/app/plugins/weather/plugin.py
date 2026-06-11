@@ -1,16 +1,17 @@
 from app.schemas.base_plugin import BasePlugin
+from app.plugins.weather.controller.controller import WeatherController
+from app.plugins.weather.routes import WeatherRouter
 
-class TasksPlugin(BasePlugin):
+class WeatherPlugin(BasePlugin):
     async def setup(self, core):
-        self.controller = TasksController(core)
-        self.router = TasksRouter(self.controller)
-        await core.state.set("tasks", {"dashboard_priority": 50})
+        self.controller = WeatherController(core)
+        self.router = WeatherRouter(self.controller)
 
     def get_router(self):
         return self.router.router
 
     def get_ws_events(self):
-        return []
+        return ["weather.updated"]
 
     def get_name(self):
-        return "tasks"
+        return "weather"

@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     db_manager = DBManager("app/db/toto.db")
     core = Core(event_bus, bg_worker, scheduler, db_manager, state)
 
-    ws_manager.forward("dashboard.changed")
+    await ws_manager.forward("dashboard.changed")
     dashboard = DashboardService(core)
 
 

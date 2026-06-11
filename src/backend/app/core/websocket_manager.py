@@ -45,14 +45,16 @@ class WebSocketManager:
         sends data to all clients connected
         removes all which cannot send to
         """
-        dead = []
-
         async with self.lock:
-            for ws in self.connections:
-                try:
-                    await ws.send_text(json.dumps(message))
-                except:
-                    dead.append(ws)
+            connections = list(self.connections)
+
+        dead = []
+        for ws in connections:
+            try:
+                await ws.send_text(json.dumps(message))
+            except Exception as e:
+                print(f"send failed: {e}")
+                dead.append(ws)
 
         for ws in dead:
             await self.disconnect(ws)
@@ -65,9 +67,9 @@ class WebSocketManager:
             await self.broadcast({"type": event, "data": data})
         self.event_bus.on(event, handler)
 
-    def forward_many(self, events: list[str]):
+    async def forward_many(self, events: list[str]):
         """
         forwards multiple event bus events to all websocket clients
         """
         for event in events:
-            self.forward(event)
+            await self.forward(event)
