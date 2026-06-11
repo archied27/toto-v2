@@ -45,7 +45,6 @@ class Scheduler:
         self.scheduler.add_job(
             self.event_bus.emit,
             trigger='cron',
-            next_run_time=run_at,
             name=event_name,
             args=[event_name, data],
             **cron_kwargs
