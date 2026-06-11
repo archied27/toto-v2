@@ -19,6 +19,9 @@ class WeatherController:
             longitude=config["longitude"],
             latitude=config["latitude"])
 
+        self.core.scheduler.add_recurring("weather.update", minute="*/15")
+        self.core.bus.on("weather.update", self.update_state)
+
     async def get_current_weather(self) -> WeatherAtTime:
         """
         returns current weather details

@@ -14,7 +14,7 @@ class EventBus:
     def on(self, event: str, handler: Callable):
         """
         adds new listener
-        handler must take data
+        handler can optionally take in data
         """
         self._listeners[event].append(handler)
 
@@ -30,12 +30,18 @@ class EventBus:
         tasks = []
 
         for handler in handlers:
+            # if the function to be called accepts data or not
+            sig = inspect.signature(handler)
+            accepts_data = len(sig.parameters) > 0
+
+            call = handler(data) if accepts_data else handler()
+
             # async function
             if inspect.iscoroutinefunction(handler):
-                tasks.append(handler(data))
+                tasks.append(call)
             # normal function
             else:
-                tasks.append(asyncio.to_thread(handler, data))
+                tasks.append(asyncio.to_thread(handler, data) if accepts_data else asyncio.to_thread(handler))
 
         await asyncio.gather(*tasks, return_exceptions=True)
 
