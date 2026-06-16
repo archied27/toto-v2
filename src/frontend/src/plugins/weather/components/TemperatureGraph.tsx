@@ -40,14 +40,18 @@ export default function TemperatureGraph({ dayHourlyWeather, currentWeather }: T
         opacity: isPast(hour) ? 0.5 : 1,  // grey out past hours
     })): null;
 
+    const maxTemp = dayHourlyWeather ? Math.max(...dayHourlyWeather.map(h => h.temp)) : null;
+
     return (
         <Card className="py-4" onClick={(e) => {
             if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
             setTooltipActive(false);
             }}}
         >
-            <CardHeader className="flex justify-center">
-                <CardTitle className="text-muted-foreground font-bold">Temperature</CardTitle>
+            <CardHeader className="flex flex-row">
+                <CardTitle className="text-muted-foreground font-bold flex-1">Temperature <span className="text-[10px]">(°C)</span></CardTitle>
+                <CardTitle className="font-bold text-right"
+                style={{ color: maxTemp !== null ? tempColour(maxTemp) : undefined }}>{maxTemp ?? "-"}°</CardTitle>
             </CardHeader>
 
         

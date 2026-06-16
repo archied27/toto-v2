@@ -40,14 +40,18 @@ export default function UVGraph({ dayHourlyWeather, currentWeather }: UVGraphPro
         opacity: isPast(hour) ? 0.5 : 1,  // grey out past hours
     })): null;
 
+    const maxUv = dayHourlyWeather ? Math.max(...dayHourlyWeather.map(h => h.uv)) : null;
+
     return (
         <Card className="py-4" onClick={(e) => {
             if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
             setTooltipActive(false);
             }}}
         >
-            <CardHeader className="flex justify-center">
-                <CardTitle className="text-muted-foreground font-bold">UV Index</CardTitle>
+            <CardHeader className="flex flex-row">
+                <CardTitle className="text-muted-foreground font-bold flex-1">UV Index</CardTitle>
+                <CardTitle className="font-bold text-right"
+                style={{ color: maxUv !== null ? uvColour(maxUv) : undefined }}>{maxUv ?? "-"} Max</CardTitle>
             </CardHeader>
 
         
@@ -73,7 +77,7 @@ export default function UVGraph({ dayHourlyWeather, currentWeather }: UVGraphPro
                         dataKey="uv"
                         stroke="url(#uvGradient)"
                         fill="url(#uvFill)"
-                        strokeWidth={2}
+                        strokeWidth={5}
                         dot={false}
                         activeDot={{r:4, strokeWidth:1.5, fill:"white", stroke:"black", opacity:tooltipActive ? 1: 0}}
                     />
@@ -87,7 +91,7 @@ export default function UVGraph({ dayHourlyWeather, currentWeather }: UVGraphPro
                         interval={3}
 
                     />
-                    <YAxis hide />
+                    <YAxis hide domain={[0,10]}/>
                     <Tooltip content={<CustomTooltip />} trigger="click" active={tooltipActive}/>
                     </AreaChart>
                 </ResponsiveContainer>

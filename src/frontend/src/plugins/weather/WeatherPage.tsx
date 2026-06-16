@@ -5,6 +5,12 @@ import WeatherDaySelector from "./components/DaySelector";
 import TemperatureGraph from "./components/TemperatureGraph";
 import PrecipitationGraph from "./components/PrecipitationGraph";
 import UVGraph from "./components/UVGraph";
+import WeatherOverview from "./components/Overview";
+
+function isToday(day: WeatherAtTime | WeatherDaily | null): day is WeatherAtTime{
+    if (day === null) return false;
+    return "temp" in day;
+}
 
 export default function WeatherPage() {
     const { weather } = useWeather();
@@ -24,8 +30,6 @@ export default function WeatherPage() {
         return dayHours?.some(h => h.uv > 0) ?? false;
     }, [dayHours]);
 
-    
-
     useEffect(() => {
         if(weather && selectedDay == null) {
             setSelectedDay(weather.current_weather);
@@ -39,6 +43,8 @@ export default function WeatherPage() {
             <WeatherDaySelector twoWeekOverview={weather?.two_week_overview} 
             currentWeather={weather?.current_weather ?? null} 
             onSelectedDay={(day) => setSelectedDay(day)} selectedDay={selectedDay} />
+            
+            <WeatherOverview day={isToday(selectedDay) ? weather?.two_week_overview[0] : selectedDay} />
 
             <TemperatureGraph currentWeather={weather?.current_weather ?? null}
             dayHourlyWeather={dayHours}/>

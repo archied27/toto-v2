@@ -18,6 +18,8 @@ export interface WeatherDaily {
   max_temp: number;
   min_temp: number;
   avg_temp: number;
+  max_uv: number;
+  precip: number;
   code: number;
 }
 

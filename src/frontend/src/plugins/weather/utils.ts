@@ -70,3 +70,12 @@ export function uvColour(uv: number): string {
   if (uv <= 10) return "#f97316";
   return "#ef4444";
 }
+
+export function uvLabel(uv: number): string {
+  if (uv <= 2) return "Low";
+  if (uv <= 4) return "Medium";
+  if (uv <= 6) return "Medium";
+  if (uv <= 8) return "High";
+  if (uv <= 10) return "Very High";
+  return "Extremely High";
+}
