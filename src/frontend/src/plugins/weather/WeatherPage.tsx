@@ -26,6 +26,13 @@ export default function WeatherPage() {
         return dayHours?.some(h => h.precip_mm > 0) ?? false;
     }, [dayHours]);
 
+    const pollenMax = dayHours ? Math.max(
+        ...dayHours.map((h) => h.grass_pollen),
+        0
+    ) : 0;
+
+    console.log(dayHours)
+
     const hasUV = useMemo(() => {
         return dayHours?.some(h => h.uv > 0) ?? false;
     }, [dayHours]);
@@ -44,7 +51,7 @@ export default function WeatherPage() {
             currentWeather={weather?.current_weather ?? null} 
             onSelectedDay={(day) => setSelectedDay(day)} selectedDay={selectedDay} />
             
-            <WeatherOverview day={isToday(selectedDay) ? weather?.two_week_overview[0] : selectedDay} />
+            <WeatherOverview day={isToday(selectedDay) ? weather?.two_week_overview[0] : selectedDay} current_weather={weather?.current_weather} max_pollen={pollenMax}/>
 
             <TemperatureGraph currentWeather={weather?.current_weather ?? null}
             dayHourlyWeather={dayHours}/>

@@ -9,6 +9,7 @@ export interface WeatherAtTime {
   precip_mm: number;
   precip_prob: number;
   uv: number;
+  grass_pollen: number;
   code: number;
   is_day: boolean;
 }
@@ -39,7 +40,6 @@ export function useWeather() {
     apiFetch<WeatherData>("/weather/current")
         .then(data =>  {
             setWeather(data);
-            console.log(data)
             setLoading(false);
         })
         .catch(() => {
@@ -49,11 +49,11 @@ export function useWeather() {
   }, []);
 
   const handleUpdate = useCallback((data: unknown) => {
-    console.log("updated")
     setWeather(data as WeatherData);
   }, []);
 
   useEvent("weather.updated", handleUpdate);
+  console.log(weather)
 
   return { weather, loading, error };
 }

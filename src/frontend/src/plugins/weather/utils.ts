@@ -79,3 +79,17 @@ export function uvLabel(uv: number): string {
   if (uv <= 10) return "Very High";
   return "Extremely High";
 }
+
+export function pollenColour(pollen: number): string {
+  if (pollen < 30) return "#60a5fa";
+  if (pollen < 50) return "#a3e635";
+  if (pollen < 150) return "#fbbf24";
+  return "#ef4444";
+}
+
+export function pollenLabel(pollen: number): string {
+  if (pollen < 30) return "Low";
+  if (pollen < 50) return "Moderate";
+  if (pollen < 150) return "High";
+  return "Very High";
+}

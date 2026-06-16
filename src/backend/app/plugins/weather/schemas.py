@@ -8,14 +8,18 @@ class WeatherAtTime:
     precip_mm: float
     precip_prob: float
     uv: float
+    grass_pollen: float
     code: int # weather code for icon and description
     is_day: bool # for icon
 
 @dataclass
 class WeatherDaily:
     time: str # iso8601 format
+    avg_temp: float
     max_temp: float
     min_temp: float
+    max_uv: float
+    precip: float
     code: int # weather code for icon and description
 
 @dataclass

@@ -19,14 +19,18 @@ class WeatherController:
             longitude=config["longitude"],
             latitude=config["latitude"])
 
-        self.core.scheduler.add_recurring("weather.update", minute="*/30")
+    async def setup(self):
+        self.core.scheduler.add_recurring("weather.update", minute="*/10")
         self.core.bus.on("weather.update", self.update_state)
 
-    async def get_current_weather(self) -> WeatherAtTime:
+        await self.update_state()
+
+
+    async def get_current_weather(self) -> dict:
         """
         returns current weather details
         """
-        return self.core.state.get("weather").current_weather
+        return asdict(self.core.state.get("weather"))
 
     async def update_state(self) -> None:
         """
@@ -41,6 +45,7 @@ class WeatherController:
                 two_week_hourly=data["two_week_hourly"]
             ))
             self.core.bus.emit_no_wait("weather.updated", asdict(self.core.state.get("weather")))
+            print("updated and sent")
 
         else:
             print("Error fetching data")

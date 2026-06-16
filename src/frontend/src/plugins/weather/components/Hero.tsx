@@ -8,7 +8,6 @@ function isToday(day: WeatherAtTime | WeatherDaily): day is WeatherAtTime{
 
 export default function Hero({ day }: { day: WeatherAtTime | WeatherDaily | null}) {
     const date = day ? new Date(day.time) : null;
-    const today = new Date();
     const is_date_today = day ? isToday(day) : false;
     
     const dateString = date ? `${is_date_today ? "Today" : date.toLocaleDateString("en-GB", {"weekday": "short"})}, 

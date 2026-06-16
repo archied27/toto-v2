@@ -1,5 +1,3 @@
-import TasksSmall from "@/plugins/tasks/TasksSmall";
-import SpotifyHero from "../plugins/spotify/SpotifyHero";
 import StatusBar from "./StatusBar";
 import WidgetSlots from "./WidgetSlots";
 import IdleClock from "./IdleClock";
@@ -12,9 +10,6 @@ interface WidgetSlot {
 }
 
 const widgets: WidgetSlot[] = [
-    {'id': 'spotify', 'component': <SpotifyHero />},
-    {'id': 'tasks', 'component': <TasksSmall />},
-    {'id': 'spotify', 'component': <TasksSmall />}
 ]
 
 export default function DashboardPage()
