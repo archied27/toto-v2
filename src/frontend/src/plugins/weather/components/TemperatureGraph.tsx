@@ -7,14 +7,15 @@ import { useRef, useState } from "react";
 interface TemperatureGraphProps {
     dayHourlyWeather: WeatherAtTime[] | null;
     currentWeather: WeatherAtTime | null;
-
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
+  const time = new Date(label).toLocaleTimeString("en-GB", {"hour12": true, "hour": "numeric"})
   return (
-    <div className="bg-card border border-border rounded-md px-2 py-1 text-sm font-medium">
-      {payload[0].value}°
+    <div className="bg-card border border-border rounded-md px-2 py-1 text-sm font-medium flex flex-col">
+      <span className="text-muted-foreground">{time}</span> 
+      <span>{payload[0].value}°</span>
     </div>
   );
 };
