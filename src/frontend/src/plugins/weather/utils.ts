@@ -61,3 +61,12 @@ export function tempColour(temp: number): string {
   if (temp <= 25) return "#f97316";
   return "#ef4444";
 }
+
+export function uvColour(uv: number): string {
+  if (uv <= 2) return "#60a5fa";
+  if (uv <= 4) return "#a3e635";
+  if (uv <= 6) return "#fde68a";
+  if (uv <= 8) return "#fbbf24";
+  if (uv <= 10) return "#f97316";
+  return "#ef4444";
+}

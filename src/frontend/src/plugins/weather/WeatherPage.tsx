@@ -4,6 +4,7 @@ import { useWeather, type WeatherAtTime, type WeatherDaily, type WeatherData } f
 import WeatherDaySelector from "./components/DaySelector";
 import TemperatureGraph from "./components/TemperatureGraph";
 import PrecipitationGraph from "./components/PrecipitationGraph";
+import UVGraph from "./components/UVGraph";
 
 export default function WeatherPage() {
     const { weather } = useWeather();
@@ -18,6 +19,12 @@ export default function WeatherPage() {
     const hasPrecipitation = useMemo(() => {
         return dayHours?.some(h => h.precip_mm > 0) ?? false;
     }, [dayHours]);
+
+    const hasUV = useMemo(() => {
+        return dayHours?.some(h => h.uv > 0) ?? false;
+    }, [dayHours]);
+
+    
 
     useEffect(() => {
         if(weather && selectedDay == null) {
@@ -35,9 +42,13 @@ export default function WeatherPage() {
 
             <TemperatureGraph currentWeather={weather?.current_weather ?? null}
             dayHourlyWeather={dayHours}/>
+
             {hasPrecipitation && (<PrecipitationGraph currentWeather={weather?.current_weather ?? null}
             dayHourlyWeather={dayHours}/>)}
-            
+
+            {hasUV && (<UVGraph currentWeather={weather?.current_weather ?? null}
+            dayHourlyWeather={dayHours}/>)}
+
         </div>
     );
 }
