@@ -4,6 +4,7 @@ import StatusBar from "./StatusBar";
 import WidgetSlots from "./WidgetSlots";
 import IdleClock from "./IdleClock";
 import type { ReactNode } from "react";
+import { useWeather } from "@/plugins/weather/useWeather";
 
 interface WidgetSlot {
   id: string
@@ -18,19 +19,21 @@ const widgets: WidgetSlot[] = [
 
 export default function DashboardPage()
 {
+    const { weather } = useWeather();
+
     return(
     <div className="h-screen w-full flex flex-col overflow-hidden bg-background">
         {widgets.length>0 ? 
         <>        
             <div className="shrink-0">
-                <StatusBar />
+                <StatusBar weather={ weather  }/>
             </div>
 
             <div className="flex-1 min-h-0 w-full relative">
                 <WidgetSlots widgets={widgets}/>
             </div> 
         </>:
-        <IdleClock />}
+        <IdleClock weather={ weather }/>}
         
 
     </div>)

@@ -8,7 +8,7 @@ export default function SpotifyHero() {
       {/* Album Art: Aspect ratio locked, max-height ensures it never pushes the page down */}
       <div className="relative aspect-square h-3/5 sm:h-full max-h-[180px] rounded-xl overflow-hidden shadow-md shrink-0 bg-muted">
         <img 
-          src="https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228" 
+          src="https://i.scdn.co/image/ab67616d00001e028863bc11d2aa12b54f5aeb36" 
           alt="Album Art"
           className="w-full h-full object-cover"
         />
