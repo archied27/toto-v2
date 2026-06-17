@@ -1,11 +1,13 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useNavigation } from "@/hooks/NavigationContext";
 import { DropletIcon } from "lucide-react";
 
 export default function PrecipitationOverview({ precip }: { precip: number | undefined }) {
     const barWidth = precip ? `${Math.min(precip / 15, 1) * 100}%` : 0;
+    const { navigate } = useNavigation();
 
     return (
-        <Card>
+        <Card onClick={() => (navigate("weather", { scrollTo: "precipitation" }))}>
             <CardContent className="px-1 py-4">
                 <div className="flex items-center gap-1.5 mb-2.5">
                     <DropletIcon size={16} className="shrink-0 text-blue-400"/>

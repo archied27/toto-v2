@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useWeather, type WeatherData } from "@/plugins/weather/useWeather";
 import { weatherIcon } from "@/plugins/weather/utils";
+import { useNavigation } from "@/hooks/NavigationContext";
 
 export default function IdleClock({ weather }: { weather: WeatherData | null })
 {
     const [time, setTime] = useState(new Date());
+    const { navigate } = useNavigation();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -31,7 +33,8 @@ export default function IdleClock({ weather }: { weather: WeatherData | null })
                     {time.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", hour12: false})}
                 </span>
 
-                <div className="flex items-center gap-1.5 text-[18px] font-normal text-muted-foreground mt-0.5">
+                <div className="flex items-center gap-1.5 text-[18px] font-normal text-muted-foreground mt-0.5"
+                onClick={() => navigate("weather", { today: true })}>
                     {current ?
                     <img src={weatherIcon(current.code, current.is_day)} className="w-10 h-10" /> :
                     <span className="font-semibold">-</span>}

@@ -1,12 +1,14 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { DropletIcon, Flower2Icon, FlowerIcon, LeafIcon, SunIcon } from "lucide-react";
 import { pollenColour, pollenLabel, uvColour, uvLabel } from "../utils";
+import { useNavigation } from "@/hooks/NavigationContext";
 
 export default function PollenOverview({ pollen }: { pollen: number | undefined }) {
-    const barWidth = pollen ? `${Math.min(pollen / 150, 1) * 100}%` : 0;
-    console.log(pollen)
+    const barWidth = pollen ? `${Math.min(pollen / 140, 1) * 100}%` : 0;
+    const { navigate } = useNavigation();
+
     return (
-        <Card className="border-none shadow-none">
+        <Card className="border-none shadow-none" onClick={() => (navigate("weather", {scrollTo: "pollen"}))}>
             <CardContent className="px-5 py-4">
                 <div className="flex items-center gap-1.5 mb-2.5">
                     <LeafIcon width={16} height={16} color="green" />
@@ -14,12 +16,15 @@ export default function PollenOverview({ pollen }: { pollen: number | undefined 
                         Pollen
                     </CardTitle>
                 </div>
-                <div className="flex items-baseline gap-1.5 mb-2.5">
+                <div className="flex items-baseline gap-1.5">
                     <span className={`text-2xl font-medium leading-none "text-blue-400"`}>
                         {pollen ? pollenLabel(pollen): "-"}
                     </span>
                     </div>
-                    <div className="h-1 bg-muted rounded-full">
+                    <span className="text-xs text-muted-foreground">
+                        {pollen ? pollen.toFixed() : "-"} <span className="text-[10px]">g/m3</span>
+                    </span>
+                    <div className="h-1 bg-muted rounded-full mt-2.5">
                     <div
                         className="h-full rounded-full transition-[width] duration-300"
                         style={{ width: barWidth, background: pollen ? pollenColour(pollen) : "yellow"}}

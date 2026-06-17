@@ -81,9 +81,9 @@ export function uvLabel(uv: number): string {
 }
 
 export function pollenColour(pollen: number): string {
-  if (pollen < 30) return "#60a5fa";
-  if (pollen < 50) return "#a3e635";
-  if (pollen < 150) return "#fbbf24";
+  if (pollen < 30) return "#a3e635";
+  if (pollen < 50) return "#fbbf24";
+  if (pollen < 150) return "#ef4444";
   return "#ef4444";
 }
 

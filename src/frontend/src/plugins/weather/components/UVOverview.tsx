@@ -1,12 +1,14 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { DropletIcon, SunIcon } from "lucide-react";
 import { uvColour, uvLabel } from "../utils";
+import { useNavigation } from "@/hooks/NavigationContext";
 
 export default function UVOverview({ uv_max }: { uv_max: number | undefined }) {
     const barWidth = uv_max ? `${Math.min(uv_max / 10, 1) * 100}%` : 0;
+    const { navigate } = useNavigation();
 
     return (
-        <Card className="border-none shadow-none">
+        <Card className="border-none shadow-none" onClick={() => (navigate("weather", { scrollTo: "uv" }))}>
             <CardContent className="px-5 py-4">
                 <div className="flex items-center gap-1.5 mb-2.5">
                     <SunIcon width={16} height={16} color="orange" />

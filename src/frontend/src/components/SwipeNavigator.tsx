@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Swiper, SwiperSlide } from 'swiper/react'
+import { useEffect, useRef, useState } from "react";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperType } from 'swiper'
+
 
 interface Page {
     id: string
@@ -12,9 +14,17 @@ interface SwipeNavigatorProps {
     onPageChange: (index: number) => void
 }
 
-export default function SwipeNavigator({ pages, onPageChange }: SwipeNavigatorProps)
+export default function SwipeNavigator({ pages, currentIndex, onPageChange }: SwipeNavigatorProps)
 {
     const [activeIndex, setActiveIndex] = useState(0)
+
+    const swiperRef = useRef<SwiperType | null>(null)
+
+    useEffect(() => {
+        if (swiperRef.current && swiperRef.current.activeIndex !== currentIndex) {
+            swiperRef.current.slideTo(currentIndex)
+        }
+    }, [currentIndex])
 
     return (
         <Swiper
@@ -26,6 +36,7 @@ export default function SwipeNavigator({ pages, onPageChange }: SwipeNavigatorPr
             spaceBetween={15}
             resistanceRatio={0.85}
             cssMode={false}
+            onSwiper={(swiper) => (swiperRef.current = swiper)}
             onSlideChange={(swiper) => {
                 setActiveIndex(swiper.activeIndex)
                 onPageChange(swiper.activeIndex)
