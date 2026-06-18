@@ -11,3 +11,9 @@ class BasePlugin(ABC):
 
     @abstractmethod
     def get_ws_events(self) -> [str]: ...
+
+    @abstractmethod
+    async def load_state(self) -> None: ...
+
+    @abstractmethod
+    async def save_state(self) -> None: ...

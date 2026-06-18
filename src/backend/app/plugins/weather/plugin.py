@@ -16,3 +16,11 @@ class WeatherPlugin(BasePlugin):
 
     def get_name(self):
         return "weather"
+
+    async def load_state(self):
+        # load state
+        self.controller.update_state()
+
+    async def save_state(self):
+        # save state (does nothing as weather state is not persisted)
+        pass

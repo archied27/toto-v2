@@ -23,8 +23,6 @@ class WeatherController:
         self.core.scheduler.add_recurring("weather.update", minute="*/10")
         self.core.bus.on("weather.update", self.update_state)
 
-        await self.update_state()
-
 
     async def get_current_weather(self) -> dict:
         """

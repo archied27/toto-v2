@@ -45,6 +45,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    await plugin_manager.save_all_states()
     bg_worker.stop()
     bg_task.cancel()
 

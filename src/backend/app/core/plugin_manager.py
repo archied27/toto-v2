@@ -32,6 +32,7 @@ class PluginManager:
                 await plugin.setup(self.core)
                 self.add_router(plugin, plugin.get_name())
                 await self.ws_manager.forward_many(plugin.get_ws_events())
+                await plugin.load_state()
 
 
     def add_router(self, plugin, name) -> None:
@@ -63,3 +64,12 @@ class PluginManager:
 
         Plugin = classes[0]
         return Plugin()
+
+    async def save_all_states(self) -> None:
+        """
+        saves state for all plugins
+        """
+        for dirpath, dirnames, filenames in os.walk("app/plugins/"):
+            if 'plugin.py' in filenames:
+                plugin = self.get_plugin_object(dirpath + "/plugin.py")
+                await plugin.save_state()
