@@ -33,6 +33,7 @@ export interface WeatherData {
 export function useWeather() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
   const { useEvent } = useWebSocketContext();
 
@@ -50,10 +51,11 @@ export function useWeather() {
 
   const handleUpdate = useCallback((data: unknown) => {
     setWeather(data as WeatherData);
+    setRefreshing(false);
   }, []);
 
   useEvent("weather.updated", handleUpdate);
   console.log(weather)
 
-  return { weather, loading, error };
+  return { weather, loading, error, refreshing, setRefreshing };
 }

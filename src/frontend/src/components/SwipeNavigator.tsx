@@ -28,7 +28,7 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
 
     return (
         <Swiper
-            className="h-screen bg-background pt-[env(safe-area-inset-top)]"
+            className="h-screen bg-background"
             slidesPerView={1}
             effect="slide"
             watchSlidesProgress

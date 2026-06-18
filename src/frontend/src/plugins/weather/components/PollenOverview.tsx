@@ -1,6 +1,6 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { DropletIcon, Flower2Icon, FlowerIcon, LeafIcon, SunIcon } from "lucide-react";
-import { pollenColour, pollenLabel, uvColour, uvLabel } from "../utils";
+import { LeafIcon } from "lucide-react";
+import { pollenColour, pollenLabel } from "../utils";
 import { useNavigation } from "@/hooks/NavigationContext";
 
 export default function PollenOverview({ pollen }: { pollen: number | undefined }) {

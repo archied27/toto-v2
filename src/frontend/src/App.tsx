@@ -18,7 +18,7 @@ function AppInner() {
   const [isCommandBar, setIsCommandBar] = useState(false)
 
   return (
-    <div className="dark h-screen bg-background pt-[env(safe-area-inset-top)]">
+    <div className="dark h-screen bg-background">
       <SwipeNavigator
         pages={pages}
         currentIndex={currentIndex}

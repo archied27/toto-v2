@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useWeather, type WeatherData } from "@/plugins/weather/useWeather";
+import { type WeatherData } from "@/plugins/weather/useWeather";
 import { weatherIcon } from "@/plugins/weather/utils";
 import { useNavigation } from "@/hooks/NavigationContext";
 

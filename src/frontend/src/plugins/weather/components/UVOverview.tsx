@@ -1,5 +1,5 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { DropletIcon, SunIcon } from "lucide-react";
+import { SunIcon } from "lucide-react";
 import { uvColour, uvLabel } from "../utils";
 import { useNavigation } from "@/hooks/NavigationContext";
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Hero from "./components/Hero";
-import { useWeather, type WeatherAtTime, type WeatherDaily, type WeatherData } from "./useWeather";
+import { useWeather, type WeatherAtTime, type WeatherDaily } from "./useWeather";
 import WeatherDaySelector from "./components/DaySelector";
 import TemperatureGraph from "./components/TemperatureGraph";
 import PrecipitationGraph from "./components/PrecipitationGraph";
@@ -8,6 +8,7 @@ import UVGraph from "./components/UVGraph";
 import WeatherOverview from "./components/Overview";
 import PollenGraph from "./components/PollenGraph";
 import { useNavigation } from "@/hooks/NavigationContext";
+import { scrollToRef } from "@/hooks/scrollToRef";
 
 function isToday(day: WeatherAtTime | WeatherDaily | null): day is WeatherAtTime{
     if (day === null) return false;
@@ -15,7 +16,7 @@ function isToday(day: WeatherAtTime | WeatherDaily | null): day is WeatherAtTime
 }
 
 export default function WeatherPage() {
-    const { weather } = useWeather();
+    const { weather, refreshing, setRefreshing } = useWeather();
     const [selectedDay, setSelectedDay] = useState<WeatherAtTime | WeatherDaily | null>(null);
 
     const { params } = useNavigation();
@@ -52,20 +53,20 @@ export default function WeatherPage() {
     useEffect(() => {
         if (params?.today === true && weather) { setSelectedDay(weather?.current_weather) };
         if (params?.scrollTo === "uv" && uvRef.current) {
-            uvRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+            scrollToRef(uvRef);
         }
         else if (params?.scrollTo === "pollen" && pollenRef.current) {
-            pollenRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+            scrollToRef(pollenRef);
         }
         else if (params?.scrollTo === "precipitation" && precipitationRef.current) {
-            precipitationRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+            scrollToRef(precipitationRef);
         }
 
     }, [params])
 
     return (
-        <div className="bg-background text-foreground px-3 flex flex-col gap-5 pt-10 pb-35">
-            <Hero day={selectedDay} />
+        <div className="bg-background text-foreground px-3 flex flex-col gap-5 pb-35">
+            <Hero day={selectedDay} refreshing={refreshing} setRefreshing={setRefreshing} />
 
             <WeatherDaySelector twoWeekOverview={weather?.two_week_overview} 
             currentWeather={weather?.current_weather ?? null} 

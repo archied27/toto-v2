@@ -1,3 +1,4 @@
+import { useNavigation } from "@/hooks/NavigationContext";
 import type { WeatherData } from "@/plugins/weather/useWeather";
 import { weatherIcon } from "@/plugins/weather/utils";
 import { useEffect, useState } from "react";
@@ -5,6 +6,7 @@ import { useEffect, useState } from "react";
 export default function StatusBar({ weather }: { weather: WeatherData | null })
 {
     const [time, setTime] = useState(new Date());
+    const { navigate } = useNavigation();
     
     useEffect(() => {
         const interval = setInterval(() => {
@@ -19,7 +21,8 @@ export default function StatusBar({ weather }: { weather: WeatherData | null })
     return (
         <div className="flex flex-col items-center pt-3 pb-2">
             <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-[15px] font-normal text-muted-foreground mt-0.5">
+                <div className="flex items-center gap-1.5 text-[15px] font-normal text-muted-foreground mt-0.5"
+                onClick={() => navigate("weather", { today: true })}>
                     {current ?
                     <img src={weatherIcon(current.code, current.is_day)} className="w-6 h-6" /> :
                     <span className="font-semibold">-</span>}
