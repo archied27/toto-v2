@@ -24,14 +24,14 @@ export default function Hero({ day, refreshing, setRefreshing }: { day: WeatherA
 
     return (
         <div className="pt-3 pb-0">
-            <div className="flex items-center w-full">
-                <RefreshCwIcon className={`absolute stroke-muted-foreground ${refreshing ? "animate-spin" : ""}`}
+            <div className="relative flex items-center w-full">
+                <RefreshCwIcon className={`stroke-muted-foreground z-10${refreshing ? "animate-spin" : ""}`}
                 onClick={() => { 
                     if (refreshing) return;
                     setRefreshing(true);
                     websocket.send({type: "weather.update"}); 
                 }} />
-                <p className="text-muted-foreground flex-1 text-[18px] font-[500] text-center">{dateString}</p>
+                <p className="absolute inset-x-0 text-muted-foreground flex-1 text-[18px] font-[500] text-center">{dateString}</p>
             </div>
             <div className="flex items-start justify-between">
                 <div>
