@@ -36,6 +36,7 @@ class WeatherController:
         """
         updates state with updated weather information
         """
+        print("updating weather state")
         data = await self.api_controller.get_details()
 
         if data:

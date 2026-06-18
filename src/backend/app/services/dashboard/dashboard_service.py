@@ -7,6 +7,7 @@ class DashboardService:
         self.core = core
         self.dashboard_state = DashboardState()
         self.core.bus.on("dashboard.rerank", self.rerank)
+        self.core.scheduler.add_recurring("dashboard.rerank", minute="*/1") # rerank every minute 
 
     async def rerank(self) -> None:
         new_state = DashboardState()

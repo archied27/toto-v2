@@ -13,6 +13,7 @@ from app.core.websocket_manager import WebSocketManager
 from app.services.dashboard.dashboard_service import DashboardService
 from app.db.manager import DBManager
 from app.core.core import Core
+import json
 
 dotenv.load_dotenv()
 
@@ -74,6 +75,14 @@ async def websocket_endpoint(websocket: WebSocket):
     await app.state.ws_manager.connect(websocket)
     try:
         while True:
-            await websocket.receive_text()
+            raw = await websocket.receive_text()
+            try:
+                data = json.loads(raw)
+                event_type = data.get("type")
+                event_data = data.get("data")
+                if event_type:
+                    await app.state.core.bus.emit(event_type, event_data)
+            except json.JSONDecodeError:
+                print("Invalid JSON received on WebSocket")
     except WebSocketDisconnect:
         await app.state.ws_manager.disconnect(websocket)
