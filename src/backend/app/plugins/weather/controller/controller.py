@@ -49,4 +49,8 @@ class WeatherController:
         else:
             print("Error fetching data")
 
-        
+    async def load_state(self) -> None:
+        """
+        loads state from core state
+        """
+        return

@@ -13,6 +13,7 @@ from app.core.websocket_manager import WebSocketManager
 from app.services.dashboard.dashboard_service import DashboardService
 from app.db.manager import DBManager
 from app.core.core import Core
+from app.core.command import router as CommandRouter
 import json
 
 dotenv.load_dotenv()
@@ -70,6 +71,21 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "backend running"}
+
+@app.post("/command")
+async def handle_command(req: dict):
+    """
+    req = { input: str }
+    """
+    result = await CommandRouter.process(req["input"])
+    print(result)
+    if result:
+        return {
+            "success": result.success,
+            "action": result.action,
+            "response": result.response_text,
+            "data": result.data
+        }
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

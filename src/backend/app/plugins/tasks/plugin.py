@@ -14,5 +14,14 @@ class TasksPlugin(BasePlugin):
     def get_ws_events(self):
         return []
 
+    def get_command(self):
+        return None
+
+    async def load_state(self):
+        pass
+
+    async def save_state(self):
+        pass
+
     def get_name(self):
         return "tasks"

@@ -12,6 +12,7 @@ import inspect
 from fastapi import FastAPI
 from app.core.websocket_manager import WebSocketManager
 from app.core.core import Core
+from app.core.command import router as CommandRouter
 
 class PluginManager:
     def __init__(self, core: Core, app: FastAPI, ws_manager: WebSocketManager):
@@ -33,6 +34,8 @@ class PluginManager:
                 self.add_router(plugin, plugin.get_name())
                 await self.ws_manager.forward_many(plugin.get_ws_events())
                 await plugin.load_state()
+                if hasattr(plugin, "get_command"):
+                    CommandRouter.register_plugin(plugin.get_command())
 
 
     def add_router(self, plugin, name) -> None:
