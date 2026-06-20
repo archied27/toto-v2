@@ -42,6 +42,7 @@ class WeatherCommand(BaseCommand):
             )
 
         if match.intent == "show_pollen":
+            await self.controller.update_state()
             state = await self.controller.get_current_weather()
             pollen = state["current_weather"]["grass_pollen"]
             return CommandResult(
@@ -52,6 +53,7 @@ class WeatherCommand(BaseCommand):
             )
 
         if match.intent == "show_current_weather":
+            await self.controller.update_state()
             state = await self.controller.get_current_weather()
             temp = state["current_weather"]["temp"]
             code = state["current_weather"]["code"]
