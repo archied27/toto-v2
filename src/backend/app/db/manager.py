@@ -17,6 +17,16 @@ class DBManager:
             await db.commit()
             return cursor.lastrowid
 
+    async def execute_many(self, query: str, params_list: list = None):
+        """
+        executes INSERT/UPDATE/DELETE for multiple rows
+        """
+        async with aiosqlite.connect(self.path) as db:
+            if params_list is None:
+                params_list = []
+            await db.executescript(sql_script=query)
+            await db.commit()
+
     async def fetch_one(self, query: str, params: list = None):
         """
         fetches single row from SELECT query

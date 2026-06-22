@@ -5,17 +5,17 @@ from typing import Optional
 
 @dataclass
 class MatchResult:
-    intent: str                     # e.g. "ADD_TASK"
-    confidence: float               # 0-1, how certain the match is
-    extracted: dict                 # whatever the plugin pulled out
-    plugin: str                     # plugin name, set by loader
+    intent: str
+    confidence: float
+    extracted: dict
+    plugin: str
 
 @dataclass  
 class CommandResult:
     success: bool
-    action: str                     # what was done
-    response_text: str              # human readable, shown in UI
-    data: dict                      # any returned data
+    action: str
+    response_text: str
+    data: dict
 
 class BaseCommand(ABC):
     name: str

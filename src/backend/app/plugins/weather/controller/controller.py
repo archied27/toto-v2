@@ -34,7 +34,6 @@ class WeatherController:
         """
         updates state with updated weather information
         """
-        print("updating weather state")
         data = await self.api_controller.get_details()
 
         if data:
@@ -44,7 +43,6 @@ class WeatherController:
                 two_week_hourly=data["two_week_hourly"]
             ))
             self.core.bus.emit_no_wait("weather.updated", asdict(self.core.state.get("weather")))
-            print("updated and sent")
 
         else:
             print("Error fetching data")

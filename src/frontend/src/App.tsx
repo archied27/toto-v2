@@ -20,7 +20,7 @@ function AppInner() {
 
   return (
     <div className="dark h-full bg-background">
-      {isCommandBar && <CommandBar isOpen={isCommandBar} onClose={() => setIsCommandBar(false)} />}
+      {isCommandBar && <CommandBar onClose={() => setIsCommandBar(false)} />}
       <div className={`h-full transition-all duration-300 ease-in-out 
         ${isCommandBar ? 'blur-sm brightness-50 pointer-events-none select-none' : ''}`}>
         <SwipeNavigator

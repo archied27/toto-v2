@@ -7,10 +7,8 @@ import type { CommandResult } from "@/plugins/types";
 import { apiFetch } from "@/hooks/api";
 
 export default function CommandBar({
-  isOpen,
   onClose,
 }: {
-  isOpen: boolean;
   onClose: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");

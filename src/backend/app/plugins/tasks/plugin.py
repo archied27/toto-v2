@@ -1,12 +1,15 @@
 from app.schemas.base_plugin import BasePlugin
 from app.plugins.tasks.routes import TasksRouter
 from app.plugins.tasks.controller.controller import TasksController
+from app.plugins.tasks.command import TasksCommand
 
 class TasksPlugin(BasePlugin):
     async def setup(self, core):
         self.controller = TasksController(core)
         self.router = TasksRouter(self.controller)
-        await core.state.set("tasks", {"dashboard_priority": 50})
+        self.command = TasksCommand(self.controller)
+
+        await self.controller.setup()
 
     def get_router(self):
         return self.router.router
@@ -15,10 +18,11 @@ class TasksPlugin(BasePlugin):
         return []
 
     def get_command(self):
-        return None
+        return self.command
 
     async def load_state(self):
-        pass
+        # load the state from the database
+        await self.controller.update_state()
 
     async def save_state(self):
         pass
