@@ -57,9 +57,10 @@ class WeatherCommand(BaseCommand):
             state = await self.controller.get_current_weather()
             temp = state["current_weather"]["temp"]
             code = state["current_weather"]["code"]
+            is_day = state["current_weather"]["is_day"]
             return CommandResult(
                 success=True,
                 action="show_current_weather",
                 response_text=f"Current Weather: {temp}°C,",
-                data={"temperature": temp, "code": code}
+                data={"temperature": temp, "code": code, "is_day": is_day}
             )

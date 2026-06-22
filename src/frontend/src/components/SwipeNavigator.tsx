@@ -28,7 +28,7 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
 
     return (
         <Swiper
-            className="h-screen bg-background"
+            className="h-full bg-background"
             slidesPerView={1}
             effect="slide"
             watchSlidesProgress
@@ -43,13 +43,15 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
             }}>
             {pages.map((page, index) => {
                 const isActive = index === activeIndex
+                // only render the current page and the two pages before and after it to improve performance
+                const shouldRender = Math.abs(index - activeIndex) <= 2
                 const PageComponent = page.component
 
                 return (
                     <SwiperSlide key={page.id}>
                     <div
                         className={[
-                        "h-screen w-screen bg-background transition-all duration-300",
+                        "h-full w-full bg-background transition-all duration-300",
                         isActive ? "p-0" : "p-3"
                         ].join(" ")}
                     >
@@ -62,7 +64,7 @@ export default function SwipeNavigator({ pages, currentIndex, onPageChange }: Sw
                         ].join(" ")}
                         >
                         <div className="h-full overflow-y-auto">
-                            <PageComponent />
+                            {shouldRender ? <PageComponent /> : <div />}
                         </div>
                         </div>
                     </div>

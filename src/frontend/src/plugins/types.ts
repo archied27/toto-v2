@@ -1,5 +1,12 @@
 import type { ComponentType } from 'react'
 
+export interface CommandResult {
+  success: boolean
+  action: string
+  response_text: string
+  data: Record<string, any>
+}
+
 export interface PluginManifest {
   id: string
   label: string
@@ -9,4 +16,6 @@ export interface PluginManifest {
     small: ComponentType | null
     wide?: ComponentType | null
   }
+
+  commandRenderers?: Partial<Record<string, ComponentType<{ data: any }>>>;
 }

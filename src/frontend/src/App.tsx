@@ -5,6 +5,7 @@ import DotsIndicator from './components/DotsIndicator'
 import DashboardPage from './dashboard/DashboardPage'
 import { WebSocketProvider } from './hooks/WebSocketContext'
 import { NavigationProvider, useNavigation } from './hooks/NavigationContext'
+import CommandBar from './components/CommandBar'
 
 const pages = [
   {"id": "dashboard", "component": DashboardPage},
@@ -18,13 +19,18 @@ function AppInner() {
   const [isCommandBar, setIsCommandBar] = useState(false)
 
   return (
-    <div className="dark h-screen bg-background">
-      <SwipeNavigator
-        pages={pages}
-        currentIndex={currentIndex}
-        onPageChange={(index) => navigate(pageIds[index])}
-      />
-      <DotsIndicator currentIndex={currentIndex} total={pages.length} onClick={() => setIsCommandBar(prev => !prev)} />
+    <div className="dark h-full bg-background">
+      {isCommandBar && <CommandBar isOpen={isCommandBar} onClose={() => setIsCommandBar(false)} />}
+      <div className={`h-full transition-all duration-300 ease-in-out 
+        ${isCommandBar ? 'blur-sm brightness-50 pointer-events-none select-none' : ''}`}>
+        <SwipeNavigator
+          pages={pages}
+          currentIndex={currentIndex}
+          onPageChange={(index) => navigate(pageIds[index])}
+        />
+      </div>
+      <DotsIndicator currentIndex={currentIndex} total={pages.length} onClick={() => setIsCommandBar(prev => !prev)} 
+      isCommandBar={isCommandBar} />
     </div>
   )
 }
