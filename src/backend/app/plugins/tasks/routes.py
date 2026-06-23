@@ -3,9 +3,66 @@ endpoints for tasks plugin
 """
 
 from fastapi import APIRouter
-from app.plugins.weather.controller.controller import WeatherController
+from app.plugins.tasks.controller.controller import TasksController
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState
 
 class TasksRouter:
-    def __init__(self, controller: WeatherController):
+    def __init__(self, controller: TasksController):
         self.router = APIRouter()
         self.controller = controller
+
+        self.router.add_api_route("/add_task", self.add_task, methods=["POST"])
+        self.router.add_api_route("/state", self.get_state, methods=["GET"])
+        self.router.add_api_route("/delete_task/{task_id}", self.delete_task, methods=["DELETE"])
+        self.router.add_api_route("/update_task", self.update_task, methods=["PUT"])
+        self.router.add_api_route("/get_task/{task_id}", self.get_task, methods=["GET"])
+        self.router.add_api_route("/get_all_tasks", self.get_all_tasks, methods=["GET"])
+        self.router.add_api_route("/add_label", self.add_label, methods=["POST"])
+        self.router.add_api_route("/get_labels", self.get_labels, methods=["GET"])
+        self.router.add_api_route("/get_label_tasks/{label_id}", self.get_label_tasks, methods=["GET"])
+        self.router.add_api_route("/add_task_list", self.add_task_list, methods=["POST"])
+        self.router.add_api_route("/get_task_list/{list_id}", self.get_task_list, methods=["GET"])
+
+    async def add_task(self, task: Task):
+        await self.controller.add_task(task)
+        return {"message": "Task added successfully"}
+
+    async def get_state(self):
+        state = await self.controller.get_state()
+        return state
+
+    async def delete_task(self, task_id: str):
+        await self.controller.delete_task(task_id)
+        return {"message": "Task deleted successfully"}
+
+    async def update_task(self, task: Task):
+        await self.controller.update_task(task)
+        return {"message": "Task updated successfully"}
+
+    async def get_task(self, task_id: str):
+        task = await self.controller.get_task(task_id)
+        return task
+
+    async def get_all_tasks(self):
+        tasks = await self.controller.get_all_tasks()
+        return tasks
+
+    async def add_task_list(self, task_list: TaskList):
+        await self.controller.add_task_list(task_list)
+        return {"message": "Task list added successfully"}
+
+    async def get_task_list(self, list_id: str):
+        task_list = await self.controller.get_task_list(list_id)
+        return task_list
+
+    async def add_label(self, label: Label):
+        await self.controller.add_label(label)
+        return {"message": "Label added successfully"}
+
+    async def get_labels(self):
+        labels = await self.controller.get_labels()
+        return labels
+    
+    async def get_label_tasks(self, label_id: str):
+        tasks = await self.controller.get_label_tasks(label_id)
+        return tasks

@@ -56,7 +56,7 @@ class TasksDBController:
             INSERT INTO tasks_tasks (id, title, description, due_date, to_do_date, completed, list_id)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (task.id, task.title, task.description, task.due_date, task.to_do_date, task.completed, task.list.id if task.list else None)
+            (task.id, task.title, task.description, task.due_date, task.to_do_date, task.completed, task.task_list.id if task.task_list else None)
         )
 
         # link the task to its labels
@@ -214,7 +214,7 @@ class TasksDBController:
                 to_do_date=task_row["to_do_date"],
                 completed=task_row["completed"],
                 labels=labels,
-                list=task_list
+                task_list=task_list
             ))
 
         return tasks
@@ -275,7 +275,7 @@ class TasksDBController:
                 to_do_date=task_row["to_do_date"],
                 completed=task_row["completed"],
                 labels=labels,
-                list=None
+                task_list=None
             ))
 
         return TaskList(
@@ -329,7 +329,7 @@ class TasksDBController:
                 to_do_date=task_row["to_do_date"],
                 completed=task_row["completed"],
                 labels=labels,
-                list=task_list
+                task_list=task_list
             ))
 
         return tasks
@@ -378,7 +378,7 @@ class TasksDBController:
                 to_do_date=task_row["to_do_date"],
                 completed=task_row["completed"],
                 labels=labels,
-                list=task_list
+                task_list=task_list
             ))
 
         return tasks
@@ -427,7 +427,79 @@ class TasksDBController:
                 to_do_date=task_row["to_do_date"],
                 completed=task_row["completed"],
                 labels=labels,
-                list=task_list
+                task_list=task_list
+            ))
+
+        return tasks
+
+    async def add_label(self, label: Label):
+        # add a label to the database
+        await self.core.db_manager.execute(
+            """
+            INSERT INTO tasks_labels (id, name, colour)
+            VALUES (?, ?, ?)
+            """,
+            (label.id, label.name, label.colour)
+        )
+
+    async def get_labels(self) -> list[Label]:
+        # get all labels from the database
+        label_rows = await self.core.db_manager.fetch_all(
+            """
+            SELECT * FROM tasks_labels
+            """
+        )
+
+        return [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
+
+    async def get_label_tasks(self, label_id: str) -> list[Task]:
+        # get all tasks that have a specific label
+        task_rows = await self.core.db_manager.fetch_all(
+            """
+            SELECT t.* FROM tasks_tasks t
+            JOIN tasks_tasks_labels tl ON t.id = tl.task_id
+            WHERE tl.label_id = ?
+            """,
+            (label_id,)
+        )
+
+        tasks = []
+        for task_row in task_rows:
+            task_id = task_row["id"]
+
+            # get the labels for the task
+            label_rows = await self.core.db_manager.fetch_all(
+                """
+                SELECT l.* FROM tasks_labels l
+                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
+                WHERE tl.task_id = ?
+                """,
+                (task_id,)
+            )
+
+            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
+
+            # get the list for the task
+            list_row = await self.core.db_manager.fetch_one(
+                """
+                SELECT l.* FROM tasks_list l
+                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
+                WHERE tl.task_id = ?
+                """,
+                (task_id,)
+            )
+
+            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
+
+            tasks.append(Task(
+                id=task_row["id"],
+                title=task_row["title"],
+                description=task_row["description"],
+                due_date=task_row["due_date"],
+                to_do_date=task_row["to_do_date"],
+                completed=task_row["completed"],
+                labels=labels,
+                task_list=task_list
             ))
 
         return tasks

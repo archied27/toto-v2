@@ -33,10 +33,21 @@ class TasksController:
             tasks_due_today=tasks_due_today
         ))
 
+    async def get_state(self) -> TasksState:
+        # get the state of the tasks plugin
+        state = self.core.state.get("tasks")
+        if state is None:
+            await self.update_state()
+            state = self.core.state.get("tasks")
+        return state
+
     async def update_priority(self):
         # update the priority of the tasks plugin based on the number of overdue tasks and tasks due today
-        priority = await self.get_current_priority()
-        await self.core.state.set("tasks", {"dashboard_priority": priority, "page_priority": priority})
+        current_priority = self.core.state.get("tasks").dashboard_priority
+        new_priority = await self.get_current_priority()
+        if new_priority != current_priority:
+            await self.core.state.set("tasks", {"dashboard_priority": new_priority, "page_priority": new_priority})
+            await self.core.bus.emit_no_wait("dashboard.rerank")
 
     async def get_current_priority(self) -> int:
         overdue_tasks = await self.db_controller.get_overdue_tasks()
@@ -51,6 +62,7 @@ class TasksController:
     async def add_task(self, task: Task):
         # add a task to the database
         await self.db_controller.add_task(task)
+        await self.update_priority()
 
     async def get_task(self, task_id: str) -> Task:
         # get a task from the database
@@ -59,10 +71,12 @@ class TasksController:
     async def update_task(self, task: Task):
         # update a task in the database
         await self.db_controller.update_task(task)
+        await self.update_priority()
 
     async def delete_task(self, task_id: str):
         # delete a task from the database
         await self.db_controller.delete_task(task_id)   
+        await self.update_priority()
     
     async def get_all_tasks(self) -> list[Task]:
         # get all tasks from the database
@@ -71,7 +85,8 @@ class TasksController:
     async def add_task_list(self, task_list: TaskList):
         # add a task list to the database
         await self.db_controller.add_task_list(task_list)
-
+        await self.update_priority()
+        
     async def get_task_list(self, list_id: str) -> TaskList:
         # get a task list from the database
         return await self.db_controller.get_task_list(list_id)
@@ -87,3 +102,16 @@ class TasksController:
     async def get_todays_tasks(self) -> list[Task]:
         # get all tasks that are for today
         return await self.db_controller.get_todays_tasks()
+
+    async def get_labels(self) -> list[Label]:
+        # get all labels from the database
+        return await self.db_controller.get_labels()
+
+    async def get_label_tasks(self, label_id: str) -> list[Task]:
+        # get all tasks that have a specific label
+        return await self.db_controller.get_label_tasks(label_id)
+
+    async def add_label(self, label: Label):
+        # add a label to the database
+        await self.db_controller.add_label(label)
+        await self.update_priority()

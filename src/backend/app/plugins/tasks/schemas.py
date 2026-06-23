@@ -1,35 +1,32 @@
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 from typing import Optional
 
-@dataclass
-class Task:
+class Label(BaseModel):
+    id: str
+    name: str
+    colour: str
+
+class TaskList(BaseModel):
+    id: str
+    name: str
+    colour: str
+
+class Task(BaseModel):
     id: str
     title: str
     description: Optional[str] = None
-    due_date: Optional[str] = None # iso8601 format
-    to_do_date: Optional[str] = None # iso8601 format, the date the task should be done
+    due_date: Optional[str] = None
+    to_do_date: Optional[str] = None
     completed: bool = False
-    labels: list[Label] = field(default_factory=list)
-    list: Optional[TaskList] = None
+    labels: list[Label] = Field(default_factory=list)
+    task_list: Optional[TaskList] = None
 
-@dataclass
-class TaskList:
-    id: str
-    name: str
-    colour: str
-    tasks: list[Task] = field(default_factory=list)
+TaskList.model_rebuild()
 
-@dataclass
-class Label:
-    id: str
-    name: str
-    colour: str
-
-@dataclass
-class TasksState:
+class TasksState(BaseModel):
     dashboard_priority: int = 0
     page_priority: int = 50
     base_priority: int = 50
-    overdue_tasks: list[Task] = field(default_factory=list) # all tasks that are overdue
-    today_tasks: list[Task] = field(default_factory=list) # all tasks for today
-    tasks_due_today: list[Task] = field(default_factory=list) # all tasks that are due today
+    overdue_tasks: list[Task] = Field(default_factory=list)
+    today_tasks: list[Task] = Field(default_factory=list)
+    tasks_due_today: list[Task] = Field(default_factory=list)
