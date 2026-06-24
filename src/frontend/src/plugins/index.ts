@@ -1,3 +1,4 @@
 import weather from "./weather"
+import tasks from "./tasks"
 
-export const plugins = [weather]
+export const plugins = [tasks, weather]

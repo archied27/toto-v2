@@ -1,4 +1,3 @@
-// useCommandRegistry.ts
 import { useMemo } from "react";
 import type { ComponentType } from "react";
 import { plugins } from "@/plugins";
@@ -10,7 +9,7 @@ export function useCommandRegistry() {
       for (const [action, renderer] of Object.entries(
         plugin.commandRenderers ?? {}
       )) {
-        map[action] = renderer!;
+        map[action] = renderer as ComponentType<{ data: any }>;
       }
     }
     return map;

@@ -67,7 +67,6 @@ export function useWebSocket(
             }
 
             setLastMessage(parsed);
-            console.log("recieved")
             onMessage?.(parsed);
         }
 

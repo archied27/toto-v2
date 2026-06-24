@@ -40,6 +40,7 @@ export function useWeather() {
   useEffect(() => {
     apiFetch<WeatherData>("/weather/current")
         .then(data =>  {
+            console.log("Weather data fetched:", data);
             setWeather(data);
             setLoading(false);
         })
@@ -55,7 +56,6 @@ export function useWeather() {
   }, []);
 
   useEvent("weather.updated", handleUpdate);
-  console.log(weather)
 
   return { weather, loading, error, refreshing, setRefreshing };
 }

@@ -15,6 +15,8 @@ from app.db.manager import DBManager
 from app.core.core import Core
 from app.core.command import router as CommandRouter
 import json
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 dotenv.load_dotenv()
 
@@ -37,6 +39,10 @@ async def lifespan(app: FastAPI):
 
     plugin_manager = PluginManager(core, app, ws_manager)
     await plugin_manager.register_plugins()
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        return FileResponse("../frontend/dist/index.html")
 
     bg_task = asyncio.create_task(bg_worker.start())
 
@@ -62,15 +68,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ] + extra_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/")
-def root():
-    return {"message": "backend running"}
 
 @app.post("/command")
 async def handle_command(req: dict):
@@ -103,3 +107,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("Invalid JSON received on WebSocket")
     except WebSocketDisconnect:
         await app.state.ws_manager.disconnect(websocket)
+
+app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="assets")
+
+# Serve other static files at root level (manifest, sw.js etc)
+app.mount("/static", StaticFiles(directory="../frontend/dist"), name="static")
