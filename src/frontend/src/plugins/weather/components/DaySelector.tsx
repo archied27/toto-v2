@@ -79,7 +79,7 @@ export default function WeatherDaySelector({ twoWeekOverview, selectedDay, curre
                     const isSelected = data !== null && (selectedDay === data || isToday(data) && isToday(selectedDay));
                     const accentColour = data ? weatherColour(data.code) : "text.bg-primary/10";
 
-                    if (!isAvailable) {
+                    if (!isAvailable || twoWeekOverview === undefined || data === null) {
                         return (
                             <Card key={slot} className="flex flex-1 flex-col 
                             items-center gap-4 px-1 py-2.5 opacity-25
@@ -111,7 +111,7 @@ export default function WeatherDaySelector({ twoWeekOverview, selectedDay, curre
                                     <span className="text-[10px] text-muted-foreground/70">
                                         {date.getDate()}/{date.getMonth() + 1}
                                     </span>
-                                    <img src={weatherIcon(data ? data.code: 0, isToday(data) ? data.is_day : true)} className="w-8 h-8 object-cover opacity-80" />
+                                    {data && <img src={weatherIcon(data ? data.code: 0, isToday(data) ? data.is_day : true)} className="w-8 h-8 object-cover opacity-80" /> }
                                     <div className="h-8 flex flex-col justify-center text-center">
                                         {isToday(data) ? (
                                             <p className="text-[13px] font-bold" style={{color: accentColour}}>{data.temp}</p>
