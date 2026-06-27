@@ -1,11 +1,21 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+class CreateLabel(BaseModel):
+    name: str
+    colour: str
+
+class CreateTaskList(BaseModel):
+    name: str
+    colour: str
+
 class Label(BaseModel):
+    id: int
     name: str
     colour: str
 
 class TaskList(BaseModel):
+    id: int
     name: str
     colour: str
 

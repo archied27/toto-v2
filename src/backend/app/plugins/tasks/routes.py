@@ -4,7 +4,7 @@ endpoints for tasks plugin
 
 from fastapi import APIRouter
 from app.plugins.tasks.controller.controller import TasksController
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
 
 class TasksRouter:
     def __init__(self, controller: TasksController):
@@ -23,6 +23,8 @@ class TasksRouter:
         self.router.add_api_route("/add_list", self.add_list, methods=["POST"])
         self.router.add_api_route("/get_list/{list_id}", self.get_list, methods=["GET"])
         self.router.add_api_route("/get_lists", self.get_lists, methods=["GET"])
+        self.router.add_api_route("/delete_list/{list_id}", self.delete_list, methods=["DELETE"])
+        self.router.add_api_route("/delete_label/{label_id}", self.delete_label, methods=["DELETE"])
 
     async def add_task(self, task: Task):
         await self.controller.add_task(task)
@@ -48,7 +50,7 @@ class TasksRouter:
         tasks = await self.controller.get_all_tasks()
         return tasks
 
-    async def add_list(self, task_list: TaskList):
+    async def add_list(self, task_list: CreateTaskList):
         await self.controller.add_list(task_list)
         return {"message": "Task list added successfully"}
 
@@ -56,7 +58,7 @@ class TasksRouter:
         task_list = await self.controller.get_list(list_id)
         return task_list
 
-    async def add_label(self, label: Label):
+    async def add_label(self, label: CreateLabel):
         await self.controller.add_label(label)
         return {"message": "Label added successfully"}
 
@@ -71,3 +73,11 @@ class TasksRouter:
     async def get_lists(self):
         lists = await self.controller.get_lists()
         return lists
+
+    async def delete_list(self, list_id: str):
+        await self.controller.delete_list(list_id)
+        return {"message": "Task list deleted successfully"}
+
+    async def delete_label(self, label_id: str):
+        await self.controller.delete_label(label_id)
+        return {"message": "Label deleted successfully"}

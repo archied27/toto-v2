@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PenIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { HexColorPicker } from "react-colorful"
-import { useAddLabel, useAddList, type TaskList, type Label } from "../useTasks"
+import { useAddLabel, useAddList } from "../useTasks"
 
 export default function AddLabelList({ type, onAdd }: 
     { type: "Label" | "List", onAdd?: () => void;}) {
@@ -21,7 +21,6 @@ export default function AddLabelList({ type, onAdd }:
 
     const onSubmit = async () => {
         if(!name.trim()) return;
-        let result = null;
         if (type == "List")
         {
             await addList(name, colour ?? "#aabbcc");

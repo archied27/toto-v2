@@ -1,12 +1,12 @@
 import { Card } from "@/components/ui/card";
-import { useGetTaskLabels, useGetTaskLists, type Task, type TaskList, type Label } from "../useTasks";
-import { CheckIcon, PlusIcon, ScrollTextIcon, TagIcon, XIcon } from "lucide-react";
+import { useGetTaskLabels, useGetTaskLists } from "../useTasks";
+import { CheckIcon, ScrollTextIcon, TagIcon, XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useState } from "react";
 import AddLabelList from "./AddLabelList";
+import LabelListButton from "./LabelListButton";
 
 export default function AddTask({ onClose }: { onClose?: () => void }) {
     const lists = useGetTaskLists();
@@ -35,11 +35,9 @@ export default function AddTask({ onClose }: { onClose?: () => void }) {
                             </Button>
                         </PopoverTrigger>
 
-                        <PopoverContent className="border opacity-90 w-full p-1 gap-1 flex flex-row">
+                        <PopoverContent className="border opacity-90 p-1 gap-1 flex flex-row flex-wrap w-auto max-w-55">
                             {lists.taskLists.map((tList) => (
-                                <Button id={tList.id} style={{ backgroundColor: tList.colour }} className="">
-                                    <p >{tList.name}</p>
-                                </Button>
+                                <LabelListButton item={tList} type="list" key={tList.id} refetch={lists.refetch} />
                             ))}
 
                             <AddLabelList type="List" onAdd={lists.refetch} />
@@ -54,11 +52,9 @@ export default function AddTask({ onClose }: { onClose?: () => void }) {
                             </Button>
                         </PopoverTrigger>
 
-                        <PopoverContent className="border opacity-90 w-full p-1 gap-1 flex flex-row">
+                        <PopoverContent className="border opacity-90 p-1 gap-1 flex flex-row flex-wrap w-auto max-w-55">
                             {labels.taskLabels.map((tLabels) => (
-                                <Button id={tLabels.id} style={{ backgroundColor: tLabels.colour }}>
-                                    <p>{tLabels.name}</p>
-                                </Button>
+                                <LabelListButton item={tLabels} type="label" key={tLabels.id} refetch={labels.refetch} />
                             ))}
 
                             <AddLabelList type="Label"

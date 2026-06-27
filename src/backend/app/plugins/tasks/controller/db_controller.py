@@ -3,7 +3,8 @@ handles all interaction with the database for the tasks plugin
 """
 
 from app.core.core import Core
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
+
 
 class TasksDBController:
     def __init__(self, core: Core):
@@ -31,7 +32,7 @@ class TasksDBController:
                 due_date TEXT,
                 to_do_date TEXT,
                 completed BOOLEAN,
-                list_id TEXT
+                list_id INTEGER
             );
 
             CREATE TABLE IF NOT EXISTS tasks_tasks_labels (
@@ -48,413 +49,143 @@ class TasksDBController:
             """
         )
 
+    # -------------------------------------------------------------------------
+    # Labels
+    # -------------------------------------------------------------------------
 
-    async def add_task(self, task: Task):
-        # add a task to the database
+    async def add_label(self, label: CreateLabel):
         await self.core.db_manager.execute(
-            """
-            INSERT INTO tasks_tasks (id, title, description, due_date, to_do_date, completed, list_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (task.id, task.title, task.description, task.due_date, task.to_do_date, task.completed, task.task_list.id if task.task_list else None)
+            "INSERT INTO tasks_labels (name, colour) VALUES (?, ?)",
+            (label.name, label.colour)
         )
 
-        # link the task to its labels
-        for label in task.labels:
-            await self.core.db_manager.execute(
-                """
-                INSERT INTO tasks_tasks_labels (task_id, label_id)
-                VALUES (?, ?)
-                """,
-                (task.id, label.id)
-            )
+    async def get_labels(self) -> list[Label]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT id, name, colour FROM tasks_labels"
+        )
+        return [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in rows]
 
-    async def get_task(self, task_id: str) -> Task:
-        # get a task from the database
-        task_row = await self.core.db_manager.fetch_one(
-            """
-            SELECT * FROM tasks_tasks WHERE id = ?
-            """,
-            (task_id,)
+    async def delete_label(self, label_id: int):
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_labels WHERE id = ?", (label_id,)
+        )
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks_labels WHERE label_id = ?", (label_id,)
         )
 
-        if not task_row:
+    # -------------------------------------------------------------------------
+    # Lists
+    # -------------------------------------------------------------------------
+
+    async def add_list(self, task_list: CreateTaskList):
+        last_id = await self.core.db_manager.execute(
+            "INSERT INTO tasks_list (name, colour) VALUES (?, ?)",
+            (task_list.name, task_list.colour)
+        )
+        print(f"Added task list with ID: {last_id}")
+
+    async def get_lists(self) -> list[TaskList]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT id, name, colour FROM tasks_list"
+        )
+        return [TaskList(id=row["id"], name=row["name"], colour=row["colour"]) for row in rows]
+
+    async def get_list(self, list_id: int) -> TaskList | None:
+        row = await self.core.db_manager.fetch_one(
+            "SELECT id, name, colour FROM tasks_list WHERE id = ?", (list_id,)
+        )
+        if not row:
             return None
+        return TaskList(id=row["id"], name=row["name"], colour=row["colour"])
 
-        # get the labels for the task
-        label_rows = await self.core.db_manager.fetch_all(
+    async def delete_list(self, list_id: int):
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_list WHERE id = ?", (list_id,)
+        )
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks_lists WHERE list_id = ?", (list_id,)
+        )
+
+    # -------------------------------------------------------------------------
+    # Tasks
+    # -------------------------------------------------------------------------
+
+    async def _fetch_labels_for_task(self, task_id: int) -> list[Label]:
+        rows = await self.core.db_manager.fetch_all(
             """
-            SELECT l.* FROM tasks_labels l
+            SELECT l.id, l.name, l.colour
+            FROM tasks_labels l
             JOIN tasks_tasks_labels tl ON l.id = tl.label_id
             WHERE tl.task_id = ?
             """,
             (task_id,)
         )
+        return [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in rows]
 
-        labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-        # get the list for the task
-        list_row = await self.core.db_manager.fetch_one(
+    async def _fetch_list_for_task(self, task_id: int) -> TaskList | None:
+        row = await self.core.db_manager.fetch_one(
             """
-            SELECT l.* FROM tasks_list l
+            SELECT l.id, l.name, l.colour
+            FROM tasks_list l
             JOIN tasks_tasks_lists tl ON l.id = tl.list_id
             WHERE tl.task_id = ?
             """,
             (task_id,)
         )
+        if not row:
+            return None
+        return TaskList(id=row["id"], name=row["name"], colour=row["colour"])
 
-        task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
+    def _build_task(self, row, labels: list[Label], task_list: TaskList | None) -> Task:
         return Task(
-            id=task_row["id"],
-            title=task_row["title"],
-            description=task_row["description"],
-            due_date=task_row["due_date"],
-            to_do_date=task_row["to_do_date"],
-            completed=task_row["completed"],
+            id=row["id"],
+            title=row["title"],
+            description=row["description"],
+            due_date=row["due_date"],
+            to_do_date=row["to_do_date"],
+            completed=row["completed"],
             labels=labels,
-            list=task_list
-        )
-        
-    async def update_task(self, task: Task):
-        # update a task in the database
-        await self.core.db_manager.execute(
-            """
-            UPDATE tasks_tasks
-            SET title = ?, description = ?, due_date = ?, to_do_date = ?, completed = ?, list_id = ?
-            WHERE id = ?
-            """,
-            (task.title, task.description, task.due_date, task.to_do_date, task.completed, task.list.id if task.list else None, task.id)
+            task_list=task_list
         )
 
-        # remove existing labels for the task
+    async def add_task(self, task: Task):
         await self.core.db_manager.execute(
             """
-            DELETE FROM tasks_tasks_labels WHERE task_id = ?
+            INSERT INTO tasks_tasks (title, description, due_date, to_do_date, completed, list_id)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (task.id,)
+            (task.title, task.description, task.due_date, task.to_do_date, task.completed,
+             task.task_list.id if task.task_list else None)
         )
+        if task.labels:
+            for label in task.labels:
+                await self.core.db_manager.execute(
+                    "INSERT INTO tasks_tasks_labels (task_id, label_id) VALUES (?, ?)",
+                    (task.id, label.id)
+                )
 
-        # link the task to its new labels
-        for label in task.labels:
-            await self.core.db_manager.execute(
-                """
-                INSERT INTO tasks_tasks_labels (task_id, label_id)
-                VALUES (?, ?)
-                """,
-                (task.id, label.id)
-            )
-
-    async def delete_task(self, task_id: str):
-        # delete a task from the database
-        await self.core.db_manager.execute(
-            """
-            DELETE FROM tasks_tasks WHERE id = ?
-            """,
-            (task_id,)
+    async def get_task(self, task_id: int) -> Task | None:
+        row = await self.core.db_manager.fetch_one(
+            "SELECT * FROM tasks_tasks WHERE id = ?", (task_id,)
         )
-
-        # remove existing labels for the task
-        await self.core.db_manager.execute(
-            """
-            DELETE FROM tasks_tasks_labels WHERE task_id = ?
-            """,
-            (task_id,)
-        )
-
-        # remove existing list for the task
-        await self.core.db_manager.execute(
-            """
-            DELETE FROM tasks_tasks_lists WHERE task_id = ?
-            """,
-            (task_id,)
-        )
+        if not row:
+            return None
+        labels = await self._fetch_labels_for_task(task_id)
+        task_list = await self._fetch_list_for_task(task_id)
+        return self._build_task(row, labels, task_list)
 
     async def get_all_tasks(self) -> list[Task]:
-        # get all tasks from the database
-        task_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT * FROM tasks_tasks
-            """
-        )
-
+        rows = await self.core.db_manager.fetch_all("SELECT * FROM tasks_tasks")
         tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            # get the list for the task
-            list_row = await self.core.db_manager.fetch_one(
-                """
-                SELECT l.* FROM tasks_list l
-                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=task_list
-            ))
-
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(task_id)
+            tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
-    async def add_list(self, task_list: TaskList):
-        # add a task list to the database
-        await self.core.db_manager.execute(
-            """
-            INSERT INTO tasks_list (name, colour)
-            VALUES (?, ?)
-            """,
-            (task_list.name, task_list.colour)
-        )
-
-    async def get_list(self, list_id: str) -> TaskList:
-        # get a task list from the database
-        list_row = await self.core.db_manager.fetch_one(
-            """
-            SELECT * FROM tasks_list WHERE id = ?
-            """,
-            (list_id,)
-        )
-
-        if not list_row:
-            return None
-
-        # get the tasks for the list
-        task_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT t.* FROM tasks_tasks t
-            JOIN tasks_tasks_lists tl ON t.id = tl.task_id
-            WHERE tl.list_id = ?
-            """,
-            (list_id,)
-        )
-
-        tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=None
-            ))
-
-        return TaskList(
-            id=list_row["id"],
-            name=list_row["name"],
-            colour=list_row["colour"],
-            tasks=tasks
-        )
-
-    async def get_today_due_tasks(self) -> list[Task]:
-        # get all tasks that are due today
-        task_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT * FROM tasks_tasks WHERE due_date = date('now')
-            """
-        )
-
-        tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            # get the list for the task
-            list_row = await self.core.db_manager.fetch_one(
-                """
-                SELECT l.* FROM tasks_list l
-                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=task_list
-            ))
-
-        return tasks
-
-    async def get_overdue_tasks(self) -> list[Task]:
-        # get all tasks that are overdue
-        task_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT * FROM tasks_tasks WHERE due_date < date('now') AND completed = 0
-            """
-        )
-
-        tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            # get the list for the task
-            list_row = await self.core.db_manager.fetch_one(
-                """
-                SELECT l.* FROM tasks_list l
-                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=task_list
-            ))
-
-        return tasks
-
-    async def get_todays_tasks(self) -> list[Task]:
-        # get all tasks that are due today
-        task_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT * FROM tasks_tasks WHERE to_do_date = date('now')
-            """
-        )
-
-        tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            # get the list for the task
-            list_row = await self.core.db_manager.fetch_one(
-                """
-                SELECT l.* FROM tasks_list l
-                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=task_list
-            ))
-
-        return tasks
-
-    async def add_label(self, label: Label):
-        # add a label to the database
-        await self.core.db_manager.execute(
-            """
-            INSERT INTO tasks_labels (name, colour)
-            VALUES (?, ?)
-            """,
-            (label.name, label.colour)
-        )
-
-    async def get_labels(self) -> list[Label]:
-        # get all labels from the database
-        label_rows = await self.core.db_manager.fetch_all(
-            """
-            SELECT * FROM tasks_labels
-            """
-        )
-
-        return [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-    async def get_label_tasks(self, label_id: str) -> list[Task]:
-        # get all tasks that have a specific label
-        task_rows = await self.core.db_manager.fetch_all(
+    async def get_label_tasks(self, label_id: int) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
             """
             SELECT t.* FROM tasks_tasks t
             JOIN tasks_tasks_labels tl ON t.id = tl.task_id
@@ -462,102 +193,77 @@ class TasksDBController:
             """,
             (label_id,)
         )
-
         tasks = []
-        for task_row in task_rows:
-            task_id = task_row["id"]
-
-            # get the labels for the task
-            label_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT l.* FROM tasks_labels l
-                JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
-
-            # get the list for the task
-            list_row = await self.core.db_manager.fetch_one(
-                """
-                SELECT l.* FROM tasks_list l
-                JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-                WHERE tl.task_id = ?
-                """,
-                (task_id,)
-            )
-
-            task_list = TaskList(id=list_row["id"], name=list_row["name"], colour=list_row["colour"]) if list_row else None
-
-            tasks.append(Task(
-                id=task_row["id"],
-                title=task_row["title"],
-                description=task_row["description"],
-                due_date=task_row["due_date"],
-                to_do_date=task_row["to_do_date"],
-                completed=task_row["completed"],
-                labels=labels,
-                task_list=task_list
-            ))
-
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(task_id)
+            tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
-    async def get_lists(self) -> list[TaskList]:
-        # get all task lists from the database
-        list_rows = await self.core.db_manager.fetch_all(
+    async def update_task(self, task: Task):
+        await self.core.db_manager.execute(
             """
-            SELECT * FROM tasks_list
-            """
+            UPDATE tasks_tasks
+            SET title = ?, description = ?, due_date = ?, to_do_date = ?, completed = ?, list_id = ?
+            WHERE id = ?
+            """,
+            (task.title, task.description, task.due_date, task.to_do_date, task.completed,
+             task.task_list.id if task.task_list else None, task.id)
         )
-
-        task_lists = []
-        for list_row in list_rows:
-            list_id = list_row["id"]
-
-            # get the tasks for the list
-            task_rows = await self.core.db_manager.fetch_all(
-                """
-                SELECT t.* FROM tasks_tasks t
-                JOIN tasks_tasks_lists tl ON t.id = tl.task_id
-                WHERE tl.list_id = ?
-                """,
-                (list_id,)
-            )
-
-            tasks = []
-            for task_row in task_rows:
-                task_id = task_row["id"]
-
-                # get the labels for the task
-                label_rows = await self.core.db_manager.fetch_all(
-                    """
-                    SELECT l.* FROM tasks_labels l
-                    JOIN tasks_tasks_labels tl ON l.id = tl.label_id
-                    WHERE tl.task_id = ?
-                    """,
-                    (task_id,)
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks_labels WHERE task_id = ?", (task.id,)
+        )
+        if task.labels:
+            for label in task.labels:
+                await self.core.db_manager.execute(
+                    "INSERT INTO tasks_tasks_labels (task_id, label_id) VALUES (?, ?)",
+                    (task.id, label.id)
                 )
 
-                labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
+    async def delete_task(self, task_id: int):
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks WHERE id = ?", (task_id,)
+        )
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks_labels WHERE task_id = ?", (task_id,)
+        )
+        await self.core.db_manager.execute(
+            "DELETE FROM tasks_tasks_lists WHERE task_id = ?", (task_id,)
+        )
 
-                tasks.append(Task(
-                    id=task_row["id"],
-                    title=task_row["title"],
-                    description=task_row["description"],
-                    due_date=task_row["due_date"],
-                    to_do_date=task_row["to_do_date"],
-                    completed=task_row["completed"],
-                    labels=labels,
-                    task_list=None
-                ))
+    async def get_today_due_tasks(self) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT * FROM tasks_tasks WHERE due_date = date('now')"
+        )
+        tasks = []
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(task_id)
+            tasks.append(self._build_task(row, labels, task_list))
+        return tasks
 
-            task_lists.append(TaskList(
-                id=list_row["id"],
-                name=list_row["name"],
-                colour=list_row["colour"],
-                tasks=tasks
-            ))
+    async def get_overdue_tasks(self) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT * FROM tasks_tasks WHERE due_date < date('now') AND completed = 0"
+        )
+        tasks = []
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(task_id)
+            tasks.append(self._build_task(row, labels, task_list))
+        return tasks
 
-        return task_lists
+    async def get_todays_tasks(self) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT * FROM tasks_tasks WHERE to_do_date = date('now')"
+        )
+        tasks = []
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(task_id)
+            tasks.append(self._build_task(row, labels, task_list))
+        return tasks

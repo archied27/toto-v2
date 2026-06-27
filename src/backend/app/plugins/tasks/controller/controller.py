@@ -4,7 +4,7 @@ contains logic for tasks plugin
 
 from app.plugins.tasks.controller.db_controller import TasksDBController
 from app.core.core import Core
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
 
 class TasksController:
     def __init__(self, core: Core):
@@ -90,7 +90,7 @@ class TasksController:
         # get all tasks from the database
         return await self.db_controller.get_all_tasks()
 
-    async def add_list(self, task_list: TaskList):
+    async def add_list(self, task_list: CreateTaskList):
         # add a task list to the database
         await self.db_controller.add_list(task_list)
         await self.update_state()
@@ -119,7 +119,7 @@ class TasksController:
         # get all tasks that have a specific label
         return await self.db_controller.get_label_tasks(label_id)
 
-    async def add_label(self, label: Label):
+    async def add_label(self, label: CreateLabel):
         # add a label to the database
         await self.db_controller.add_label(label)
         await self.update_state()
@@ -127,3 +127,13 @@ class TasksController:
     async def get_lists(self) -> list[TaskList]:
         # get all task lists from the database
         return await self.db_controller.get_lists()
+
+    async def delete_list(self, list_id: str):
+        # delete a task list from the database
+        await self.db_controller.delete_list(list_id)
+        await self.update_state()
+
+    async def delete_label(self, label_id: str):
+        # delete a label from the database
+        await self.db_controller.delete_label(label_id)
+        await self.update_state()

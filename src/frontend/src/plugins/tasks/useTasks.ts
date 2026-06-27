@@ -3,19 +3,19 @@ import { useWebSocketContext } from "@/hooks/WebSocketContext";
 import { useCallback, useEffect, useState } from "react";
 
 export interface Label {
-    id: string;
+    id: number;
     name: string;
     colour: string;
 }
 
 export interface TaskList {
-    id: string;
+    id: number;
     name: string;
     colour: string;
 }
 
 export interface Task {
-    id: string;
+    id: number;
     title: string;
     description?: string;
     dueDate?: string;
@@ -65,6 +65,7 @@ export function useGetTaskLists() {
 
     useEffect(() => { fetchLists(); }, [fetchLists]);
 
+    console.log("Fetched task lists:", taskLists);
     return { taskLists, refetch: fetchLists };
 }
 
@@ -120,4 +121,43 @@ export function useAddLabel() {
     }, []);
 
     return { addLabel, loading };
+}
+
+export function useDeleteList() {
+    const [loading, setLoading] = useState(false);
+
+    const deleteList = useCallback(async (id: number) => {
+        setLoading(true);
+        try {
+            await apiFetch(`/tasks/delete_list/${id}`, {
+                method: "DELETE"
+            });
+        } catch (error) {
+            console.error("Failed to delete list", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { deleteList, loading };
+}
+
+
+export function useDeleteLabel() {
+    const [loading, setLoading] = useState(false);
+
+    const deleteLabel = useCallback(async (id: number) => {
+        setLoading(true);
+        try {
+            await apiFetch(`/tasks/delete_label/${id}`, {
+                method: "DELETE"
+            });
+        } catch (error) {
+            console.error("Failed to delete label", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { deleteLabel, loading };
 }
