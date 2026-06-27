@@ -2,17 +2,14 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class Label(BaseModel):
-    id: str
     name: str
     colour: str
 
 class TaskList(BaseModel):
-    id: str
     name: str
     colour: str
 
 class Task(BaseModel):
-    id: str
     title: str
     description: Optional[str] = None
     due_date: Optional[str] = None

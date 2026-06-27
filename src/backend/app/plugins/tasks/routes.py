@@ -20,8 +20,9 @@ class TasksRouter:
         self.router.add_api_route("/add_label", self.add_label, methods=["POST"])
         self.router.add_api_route("/get_labels", self.get_labels, methods=["GET"])
         self.router.add_api_route("/get_label_tasks/{label_id}", self.get_label_tasks, methods=["GET"])
-        self.router.add_api_route("/add_task_list", self.add_task_list, methods=["POST"])
-        self.router.add_api_route("/get_task_list/{list_id}", self.get_task_list, methods=["GET"])
+        self.router.add_api_route("/add_list", self.add_list, methods=["POST"])
+        self.router.add_api_route("/get_list/{list_id}", self.get_list, methods=["GET"])
+        self.router.add_api_route("/get_lists", self.get_lists, methods=["GET"])
 
     async def add_task(self, task: Task):
         await self.controller.add_task(task)
@@ -47,12 +48,12 @@ class TasksRouter:
         tasks = await self.controller.get_all_tasks()
         return tasks
 
-    async def add_task_list(self, task_list: TaskList):
-        await self.controller.add_task_list(task_list)
+    async def add_list(self, task_list: TaskList):
+        await self.controller.add_list(task_list)
         return {"message": "Task list added successfully"}
 
-    async def get_task_list(self, list_id: str):
-        task_list = await self.controller.get_task_list(list_id)
+    async def get_list(self, list_id: str):
+        task_list = await self.controller.get_list(list_id)
         return task_list
 
     async def add_label(self, label: Label):
@@ -66,3 +67,7 @@ class TasksRouter:
     async def get_label_tasks(self, label_id: str):
         tasks = await self.controller.get_label_tasks(label_id)
         return tasks
+
+    async def get_lists(self):
+        lists = await self.controller.get_lists()
+        return lists

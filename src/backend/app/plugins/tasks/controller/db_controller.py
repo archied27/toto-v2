@@ -13,19 +13,19 @@ class TasksDBController:
         await self.core.db_manager.execute_many(
             """
             CREATE TABLE IF NOT EXISTS tasks_labels (
-                id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 colour TEXT
             );
 
             CREATE TABLE IF NOT EXISTS tasks_list (
-                id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 colour TEXT
             );
 
             CREATE TABLE IF NOT EXISTS tasks_tasks (
-                id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
                 description TEXT,
                 due_date TEXT,
@@ -35,14 +35,14 @@ class TasksDBController:
             );
 
             CREATE TABLE IF NOT EXISTS tasks_tasks_labels (
-                task_id TEXT,
-                label_id TEXT,
+                task_id INTEGER,
+                label_id INTEGER,
                 PRIMARY KEY (task_id, label_id)
             );
 
             CREATE TABLE IF NOT EXISTS tasks_tasks_lists (
-                task_id TEXT,
-                list_id TEXT,
+                task_id INTEGER,
+                list_id INTEGER,
                 PRIMARY KEY (task_id, list_id)
             );
             """
@@ -219,17 +219,17 @@ class TasksDBController:
 
         return tasks
 
-    async def add_task_list(self, task_list: TaskList):
+    async def add_list(self, task_list: TaskList):
         # add a task list to the database
         await self.core.db_manager.execute(
             """
-            INSERT INTO tasks_list (id, name, colour)
-            VALUES (?, ?, ?)
+            INSERT INTO tasks_list (name, colour)
+            VALUES (?, ?)
             """,
-            (task_list.id, task_list.name, task_list.colour)
+            (task_list.name, task_list.colour)
         )
 
-    async def get_task_list(self, list_id: str) -> TaskList:
+    async def get_list(self, list_id: str) -> TaskList:
         # get a task list from the database
         list_row = await self.core.db_manager.fetch_one(
             """
@@ -436,10 +436,10 @@ class TasksDBController:
         # add a label to the database
         await self.core.db_manager.execute(
             """
-            INSERT INTO tasks_labels (id, name, colour)
-            VALUES (?, ?, ?)
+            INSERT INTO tasks_labels (name, colour)
+            VALUES (?, ?)
             """,
-            (label.id, label.name, label.colour)
+            (label.name, label.colour)
         )
 
     async def get_labels(self) -> list[Label]:
@@ -503,3 +503,61 @@ class TasksDBController:
             ))
 
         return tasks
+
+    async def get_lists(self) -> list[TaskList]:
+        # get all task lists from the database
+        list_rows = await self.core.db_manager.fetch_all(
+            """
+            SELECT * FROM tasks_list
+            """
+        )
+
+        task_lists = []
+        for list_row in list_rows:
+            list_id = list_row["id"]
+
+            # get the tasks for the list
+            task_rows = await self.core.db_manager.fetch_all(
+                """
+                SELECT t.* FROM tasks_tasks t
+                JOIN tasks_tasks_lists tl ON t.id = tl.task_id
+                WHERE tl.list_id = ?
+                """,
+                (list_id,)
+            )
+
+            tasks = []
+            for task_row in task_rows:
+                task_id = task_row["id"]
+
+                # get the labels for the task
+                label_rows = await self.core.db_manager.fetch_all(
+                    """
+                    SELECT l.* FROM tasks_labels l
+                    JOIN tasks_tasks_labels tl ON l.id = tl.label_id
+                    WHERE tl.task_id = ?
+                    """,
+                    (task_id,)
+                )
+
+                labels = [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in label_rows]
+
+                tasks.append(Task(
+                    id=task_row["id"],
+                    title=task_row["title"],
+                    description=task_row["description"],
+                    due_date=task_row["due_date"],
+                    to_do_date=task_row["to_do_date"],
+                    completed=task_row["completed"],
+                    labels=labels,
+                    task_list=None
+                ))
+
+            task_lists.append(TaskList(
+                id=list_row["id"],
+                name=list_row["name"],
+                colour=list_row["colour"],
+                tasks=tasks
+            ))
+
+        return task_lists

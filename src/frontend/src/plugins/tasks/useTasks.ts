@@ -53,3 +53,71 @@ export function useTaskState() {
 
     return { taskState };
 }
+
+export function useGetTaskLists() {
+    const [taskLists, setTaskLists] = useState<TaskList[]>([]);
+
+    const fetchLists = useCallback(() => {
+        apiFetch<TaskList[]>("/tasks/get_lists")
+            .then(data => setTaskLists(data))
+            .catch(() => console.error("Failed to fetch task lists"));
+    }, []);
+
+    useEffect(() => { fetchLists(); }, [fetchLists]);
+
+    return { taskLists, refetch: fetchLists };
+}
+
+export function useGetTaskLabels() {
+    const [taskLabels, setTaskLabels] = useState<Label[]>([]);
+
+    const fetchLabels = useCallback(() => {
+        apiFetch<Label[]>("/tasks/get_labels")
+            .then(data => setTaskLabels(data))
+            .catch(() => console.error("Failed to fetch task labels"));
+    }, []);
+
+    useEffect(() => { fetchLabels(); }, [fetchLabels]);
+
+    return { taskLabels, refetch: fetchLabels };
+}
+
+export function useAddList() {
+    const [loading, setLoading] = useState(false);
+
+    const addList = useCallback(async (name: string, colour: string) => {
+        setLoading(true);
+        try {
+            await apiFetch("/tasks/add_list", {
+                method: "POST",
+                body: JSON.stringify({ name, colour }),
+            });
+        } catch (error) {
+            console.error("Failed to add task list", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { addList, loading };
+}
+
+export function useAddLabel() {
+    const [loading, setLoading] = useState(false);
+
+    const addLabel = useCallback(async (name: string, colour: string) => {
+        setLoading(true);
+        try {
+            await apiFetch("/tasks/add_label", {
+                method: "POST",
+                body: JSON.stringify({ name, colour }),
+            });
+        } catch (error) {
+            console.error("Failed to add task label", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { addLabel, loading };
+}
