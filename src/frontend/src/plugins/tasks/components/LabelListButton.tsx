@@ -5,7 +5,7 @@ import { PenIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import EditLabelList from "./EditLabelList";
 
-export default function LabelListButton({ item, type, refetch }: { item: TaskList | Label; type: "list" | "label"; refetch: () => void })
+export default function LabelListButton({ item, type, refetch, selected, onToggle }: { item: TaskList | Label; type: "list" | "label"; refetch: () => void; selected: boolean; onToggle: () => void })
 {
     const [editOpen, setEditOpen] = useState(false);
 
@@ -35,7 +35,7 @@ export default function LabelListButton({ item, type, refetch }: { item: TaskLis
             
             <ContextMenu>
                 <ContextMenuTrigger asChild>
-                    <Button style={{ backgroundColor: item.colour }} className="">
+                    <Button style={{ backgroundColor: item.colour }} className={selected ? "ring-1 ring-white" : ""} onClick={onToggle}>
                         <p>{item.name}</p>
                     </Button>
                 </ContextMenuTrigger>

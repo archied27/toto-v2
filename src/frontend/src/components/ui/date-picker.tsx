@@ -1,9 +1,7 @@
 "use client"
-
 import * as React from "react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { ChevronDownIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -12,8 +10,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-export function DatePicker({ placeholder }: { placeholder?: string }) {
-  const [date, setDate] = React.useState<Date>()
+interface DatePickerProps {
+  placeholder?: string
+  value?: string | null
+  onChange?: (isoDate: string | null) => void
+}
+
+export function DatePicker({ placeholder, value, onChange }: DatePickerProps) {
+  const date = value ? parseISO(value) : undefined
+
+  const handleSelect = (selected: Date | undefined) => {
+    if (!onChange) return
+    onChange(selected ? selected.toISOString() : null)
+  }
 
   return (
     <div className="dark">
@@ -32,7 +41,7 @@ export function DatePicker({ placeholder }: { placeholder?: string }) {
           <Calendar
             mode="single"
             selected={date}
-            onSelect={setDate}
+            onSelect={handleSelect}
             defaultMonth={date}
           />
         </PopoverContent>

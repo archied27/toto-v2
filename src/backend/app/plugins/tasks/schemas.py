@@ -9,6 +9,14 @@ class CreateTaskList(BaseModel):
     name: str
     colour: str
 
+class CreateTask(BaseModel):
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[str] = None
+    to_do_date: Optional[str] = None
+    label_ids: Optional[list[int]] = Field(default_factory=list)
+    list_id: Optional[int] = None
+
 class Label(BaseModel):
     id: int
     name: str
@@ -20,6 +28,7 @@ class TaskList(BaseModel):
     colour: str
 
 class Task(BaseModel):
+    id: int
     title: str
     description: Optional[str] = None
     due_date: Optional[str] = None

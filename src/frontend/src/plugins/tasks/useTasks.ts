@@ -201,3 +201,23 @@ export function useEditLabel() {
 
     return { editLabel, loading };
 }
+
+export function useAddTask() {
+    const [loading, setLoading] = useState(false);
+
+    const addTask = useCallback(async (title: string, description: string | null, due_date: string | null, to_do_date: string | null, list_id: number | null, label_ids: number[] | null) => {
+        setLoading(true);
+        try {
+            await apiFetch("/tasks/add_task", {
+                method: "POST",
+                body: JSON.stringify({ title, description, due_date, to_do_date, list_id, label_ids }),
+            });
+        } catch (error) {
+            console.error("Failed to add task", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { addTask, loading };
+}

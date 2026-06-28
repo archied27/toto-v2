@@ -4,7 +4,7 @@ contains logic for tasks plugin
 
 from app.plugins.tasks.controller.db_controller import TasksDBController
 from app.core.core import Core
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList, CreateTask
 
 class TasksController:
     def __init__(self, core: Core):
@@ -67,7 +67,7 @@ class TasksController:
         priority += len(tasks_set_today) * 1
         return min(priority, 100)
 
-    async def add_task(self, task: Task):
+    async def add_task(self, task: CreateTask):
         # add a task to the database
         await self.db_controller.add_task(task)
         await self.update_state()
@@ -76,7 +76,7 @@ class TasksController:
         # get a task from the database
         return await self.db_controller.get_task(task_id)
 
-    async def update_task(self, task: Task):
+    async def update_task(self, task: CreateTask):
         # update a task in the database
         await self.db_controller.update_task(task)
         await self.update_state()

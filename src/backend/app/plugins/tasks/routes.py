@@ -4,7 +4,7 @@ endpoints for tasks plugin
 
 from fastapi import APIRouter
 from app.plugins.tasks.controller.controller import TasksController
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList, CreateTask
 
 class TasksRouter:
     def __init__(self, controller: TasksController):
@@ -28,7 +28,7 @@ class TasksRouter:
         self.router.add_api_route("/edit_label", self.edit_label, methods=["PUT"])
         self.router.add_api_route("/edit_list", self.edit_list, methods=["PUT"])
 
-    async def add_task(self, task: Task):
+    async def add_task(self, task: CreateTask):
         await self.controller.add_task(task)
         return {"message": "Task added successfully"}
 
@@ -40,7 +40,7 @@ class TasksRouter:
         await self.controller.delete_task(task_id)
         return {"message": "Task deleted successfully"}
 
-    async def update_task(self, task: Task):
+    async def update_task(self, task: CreateTask):
         await self.controller.update_task(task)
         return {"message": "Task updated successfully"}
 

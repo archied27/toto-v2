@@ -3,7 +3,7 @@ handles all interaction with the database for the tasks plugin
 """
 
 from app.core.core import Core
-from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList
+from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList, CreateTask
 
 
 class TasksDBController:
@@ -160,20 +160,19 @@ class TasksDBController:
             task_list=task_list
         )
 
-    async def add_task(self, task: Task):
-        await self.core.db_manager.execute(
+    async def add_task(self, task: CreateTask):
+        last_id = await self.core.db_manager.execute(
             """
             INSERT INTO tasks_tasks (title, description, due_date, to_do_date, completed, list_id)
             VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (task.title, task.description, task.due_date, task.to_do_date, task.completed,
-             task.task_list.id if task.task_list else None)
+            (task.title, task.description, task.due_date, task.to_do_date, False, task.list_id)
         )
-        if task.labels:
-            for label in task.labels:
+        if task.label_ids:
+            for label_id in task.label_ids:
                 await self.core.db_manager.execute(
                     "INSERT INTO tasks_tasks_labels (task_id, label_id) VALUES (?, ?)",
-                    (task.id, label.id)
+                    (last_id, label_id)
                 )
 
     async def get_task(self, task_id: int) -> Task | None:
@@ -213,7 +212,7 @@ class TasksDBController:
             tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
-    async def update_task(self, task: Task):
+    async def update_task(self, task: CreateTask):
         await self.core.db_manager.execute(
             """
             UPDATE tasks_tasks
@@ -221,7 +220,7 @@ class TasksDBController:
             WHERE id = ?
             """,
             (task.title, task.description, task.due_date, task.to_do_date, task.completed,
-             task.task_list.id if task.task_list else None, task.id)
+             task.list_id if task.list_id else None, task.id)
         )
         await self.core.db_manager.execute(
             "DELETE FROM tasks_tasks_labels WHERE task_id = ?", (task.id,)
