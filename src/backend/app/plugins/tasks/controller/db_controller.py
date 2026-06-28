@@ -73,6 +73,12 @@ class TasksDBController:
             "DELETE FROM tasks_tasks_labels WHERE label_id = ?", (label_id,)
         )
 
+    async def edit_label(self, label_id: int, name: str, colour: str):
+        await self.core.db_manager.execute(
+            "UPDATE tasks_labels SET name = ?, colour = ? WHERE id = ?",
+            (name, colour, label_id)
+        )
+
     # -------------------------------------------------------------------------
     # Lists
     # -------------------------------------------------------------------------
@@ -104,6 +110,12 @@ class TasksDBController:
         )
         await self.core.db_manager.execute(
             "DELETE FROM tasks_tasks_lists WHERE list_id = ?", (list_id,)
+        )
+
+    async def edit_list(self, list_id: int, name: str, colour: str):
+        await self.core.db_manager.execute(
+            "UPDATE tasks_list SET name = ?, colour = ? WHERE id = ?",
+            (name, colour, list_id)
         )
 
     # -------------------------------------------------------------------------

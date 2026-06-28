@@ -137,3 +137,13 @@ class TasksController:
         # delete a label from the database
         await self.db_controller.delete_label(label_id)
         await self.update_state()
+
+    async def edit_label(self, label_id: int, name: str, colour: str):
+        # edit a label in the database
+        await self.db_controller.edit_label(label_id, name, colour)
+        await self.update_state()
+
+    async def edit_list(self, list_id: int, name: str, colour: str):
+        # edit a task list in the database
+        await self.db_controller.edit_list(list_id, name, colour)
+        await self.update_state()

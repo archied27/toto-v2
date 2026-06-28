@@ -65,7 +65,6 @@ export function useGetTaskLists() {
 
     useEffect(() => { fetchLists(); }, [fetchLists]);
 
-    console.log("Fetched task lists:", taskLists);
     return { taskLists, refetch: fetchLists };
 }
 
@@ -160,4 +159,45 @@ export function useDeleteLabel() {
     }, []);
 
     return { deleteLabel, loading };
+}
+
+export function useEditList() {
+    const [loading, setLoading] = useState(false);
+
+    const editList = useCallback(async (id: number, name: string, colour: string) => {
+        setLoading(true);
+        console.log(`Editing list with id: ${id}, name: ${name}, colour: ${colour}`);
+        try {
+            await apiFetch(`/tasks/edit_list`, {
+                method: "PUT",
+                body: JSON.stringify({ id, name, colour }),
+            });
+        } catch (error) {
+            console.error("Failed to edit list", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { editList, loading };
+}
+
+export function useEditLabel() {
+    const [loading, setLoading] = useState(false);
+
+    const editLabel = useCallback(async (id: number, name: string, colour: string) => {
+        setLoading(true);
+        try {
+            await apiFetch(`/tasks/edit_label`, {
+                method: "PUT",
+                body: JSON.stringify({ id, name, colour }),
+            });
+        } catch (error) {
+            console.error("Failed to edit label", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { editLabel, loading };
 }

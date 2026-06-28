@@ -25,6 +25,8 @@ class TasksRouter:
         self.router.add_api_route("/get_lists", self.get_lists, methods=["GET"])
         self.router.add_api_route("/delete_list/{list_id}", self.delete_list, methods=["DELETE"])
         self.router.add_api_route("/delete_label/{label_id}", self.delete_label, methods=["DELETE"])
+        self.router.add_api_route("/edit_label", self.edit_label, methods=["PUT"])
+        self.router.add_api_route("/edit_list", self.edit_list, methods=["PUT"])
 
     async def add_task(self, task: Task):
         await self.controller.add_task(task)
@@ -81,3 +83,11 @@ class TasksRouter:
     async def delete_label(self, label_id: str):
         await self.controller.delete_label(label_id)
         return {"message": "Label deleted successfully"}
+
+    async def edit_label(self, body: Label):
+        await self.controller.edit_label(body.id, body.name, body.colour)
+        return {"message": "Label edited successfully"}
+
+    async def edit_list(self, body: TaskList):
+        await self.controller.edit_list(body.id, body.name, body.colour)
+        return {"message": "Task list edited successfully"}

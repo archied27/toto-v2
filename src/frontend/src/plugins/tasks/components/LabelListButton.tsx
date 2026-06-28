@@ -2,14 +2,17 @@ import { type TaskList, type Label, useDeleteList, useDeleteLabel } from "../use
 import { Button } from "@/components/ui/button";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { PenIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
+import EditLabelList from "./EditLabelList";
 
 export default function LabelListButton({ item, type, refetch }: { item: TaskList | Label; type: "list" | "label"; refetch: () => void })
 {
+    const [editOpen, setEditOpen] = useState(false);
+
     const { deleteList } = useDeleteList();
     const { deleteLabel } = useDeleteLabel();
 
     const handleDelete = async () => {
-        console.log("Deleting item:", item);
         if (type === "list") {
             await deleteList(item.id);
         } else {
@@ -19,23 +22,35 @@ export default function LabelListButton({ item, type, refetch }: { item: TaskLis
     }
 
     return (
-        <ContextMenu>
-            <ContextMenuTrigger asChild>
-                <Button style={{ backgroundColor: item.colour }} className="">
-                    <p>{item.name}</p>
-                </Button>
-            </ContextMenuTrigger>
+        <>
+            <EditLabelList
+                type={type}
+                initialName={item.name}
+                initialColour={item.colour}
+                id={item.id}
+                onDone={refetch}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+            />
+            
+            <ContextMenu>
+                <ContextMenuTrigger asChild>
+                    <Button style={{ backgroundColor: item.colour }} className="">
+                        <p>{item.name}</p>
+                    </Button>
+                </ContextMenuTrigger>
 
-            <ContextMenuContent className="flex flex-col w-auto text-muted-foreground">
-                <ContextMenuItem>
-                    <PenIcon />
-                    Edit
-                </ContextMenuItem>
-                <ContextMenuItem onClick={handleDelete} className="text-destructive">
-                    <TrashIcon />
-                    Delete
-                </ContextMenuItem>
-            </ContextMenuContent>
-        </ContextMenu>
+                <ContextMenuContent className="flex flex-col w-auto text-muted-foreground">
+                    <ContextMenuItem onClick={() => setEditOpen(true)}>
+                        <PenIcon />
+                        Edit
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={handleDelete} className="text-destructive">
+                        <TrashIcon />
+                        Delete
+                    </ContextMenuItem>
+                </ContextMenuContent>
+            </ContextMenu>
+        </>
     );
 }
