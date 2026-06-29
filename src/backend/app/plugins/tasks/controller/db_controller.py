@@ -40,12 +40,6 @@ class TasksDBController:
                 label_id INTEGER,
                 PRIMARY KEY (task_id, label_id)
             );
-
-            CREATE TABLE IF NOT EXISTS tasks_tasks_lists (
-                task_id INTEGER,
-                list_id INTEGER,
-                PRIMARY KEY (task_id, list_id)
-            );
             """
         )
 
@@ -134,15 +128,10 @@ class TasksDBController:
         )
         return [Label(id=row["id"], name=row["name"], colour=row["colour"]) for row in rows]
 
-    async def _fetch_list_for_task(self, task_id: int) -> TaskList | None:
+    async def _fetch_list_for_task(self, list_id: int) -> TaskList | None:
         row = await self.core.db_manager.fetch_one(
-            """
-            SELECT l.id, l.name, l.colour
-            FROM tasks_list l
-            JOIN tasks_tasks_lists tl ON l.id = tl.list_id
-            WHERE tl.task_id = ?
-            """,
-            (task_id,)
+            "SELECT id, name, colour FROM tasks_list WHERE id = ?",
+            (list_id,)
         )
         if not row:
             return None
@@ -182,7 +171,7 @@ class TasksDBController:
         if not row:
             return None
         labels = await self._fetch_labels_for_task(task_id)
-        task_list = await self._fetch_list_for_task(task_id)
+        task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
         return self._build_task(row, labels, task_list)
 
     async def get_all_tasks(self) -> list[Task]:
@@ -191,7 +180,7 @@ class TasksDBController:
         for row in rows:
             task_id = row["id"]
             labels = await self._fetch_labels_for_task(task_id)
-            task_list = await self._fetch_list_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
             tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
@@ -208,7 +197,7 @@ class TasksDBController:
         for row in rows:
             task_id = row["id"]
             labels = await self._fetch_labels_for_task(task_id)
-            task_list = await self._fetch_list_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
             tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
@@ -251,7 +240,7 @@ class TasksDBController:
         for row in rows:
             task_id = row["id"]
             labels = await self._fetch_labels_for_task(task_id)
-            task_list = await self._fetch_list_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
             tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
@@ -263,7 +252,7 @@ class TasksDBController:
         for row in rows:
             task_id = row["id"]
             labels = await self._fetch_labels_for_task(task_id)
-            task_list = await self._fetch_list_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
             tasks.append(self._build_task(row, labels, task_list))
         return tasks
 
@@ -275,6 +264,30 @@ class TasksDBController:
         for row in rows:
             task_id = row["id"]
             labels = await self._fetch_labels_for_task(task_id)
-            task_list = await self._fetch_list_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
+            tasks.append(self._build_task(row, labels, task_list))
+        return tasks
+
+    async def get_tomorrow_tasks(self) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT * FROM tasks_tasks WHERE to_do_date = date('now', '+1 day')"
+        )
+        tasks = []
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
+            tasks.append(self._build_task(row, labels, task_list))
+        return tasks
+
+    async def get_tasks_with_a_due_date(self) -> list[Task]:
+        rows = await self.core.db_manager.fetch_all(
+            "SELECT * FROM tasks_tasks WHERE due_date IS NOT NULL"
+        )
+        tasks = []
+        for row in rows:
+            task_id = row["id"]
+            labels = await self._fetch_labels_for_task(task_id)
+            task_list = await self._fetch_list_for_task(row["list_id"]) if row["list_id"] else None
             tasks.append(self._build_task(row, labels, task_list))
         return tasks

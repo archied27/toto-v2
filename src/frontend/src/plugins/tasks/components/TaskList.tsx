@@ -10,7 +10,7 @@ export default function TaskList({ tasks }: { tasks: Task[] }) {
                 <p className="text-sm text-muted-foreground">All Tasks Completed</p>
             </div>
         ) : (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
                 {tasks.map(task => (
                     <TaskCard key={task.id} task={task} />
                 ))}

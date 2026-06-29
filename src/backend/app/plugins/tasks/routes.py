@@ -27,6 +27,8 @@ class TasksRouter:
         self.router.add_api_route("/delete_label/{label_id}", self.delete_label, methods=["DELETE"])
         self.router.add_api_route("/edit_label", self.edit_label, methods=["PUT"])
         self.router.add_api_route("/edit_list", self.edit_list, methods=["PUT"])
+        self.router.add_api_route("/get_tomorrow_tasks", self.get_tomorrow_tasks, methods=["GET"])
+        self.router.add_api_route("/get_upcoming_tasks", self.get_upcoming_tasks, methods=["GET"])
 
     async def add_task(self, task: CreateTask):
         await self.controller.add_task(task)
@@ -91,3 +93,11 @@ class TasksRouter:
     async def edit_list(self, body: TaskList):
         await self.controller.edit_list(body.id, body.name, body.colour)
         return {"message": "Task list edited successfully"}
+
+    async def get_tomorrow_tasks(self):
+        tasks = await self.controller.get_tomorrow_tasks()
+        return tasks
+
+    async def get_upcoming_tasks(self):
+        tasks = await self.controller.get_upcoming_tasks()
+        return tasks

@@ -108,7 +108,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         await app.state.ws_manager.disconnect(websocket)
 
-app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="assets")
+# Static files - order matters, all before the catch-all
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse("../frontend/dist/manifest.json")
 
-# Serve other static files at root level (manifest, sw.js etc)
-app.mount("/static", StaticFiles(directory="../frontend/dist"), name="static")
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse("../frontend/dist/sw.js")
+
+app.mount("/icons", StaticFiles(directory="../frontend/dist/icons"), name="icons")
+app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="assets")

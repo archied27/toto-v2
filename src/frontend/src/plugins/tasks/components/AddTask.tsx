@@ -32,7 +32,7 @@ export default function AddTask({ onClose }: { onClose?: () => void }) {
             <div className="flex items-center justify-between px-5">
                 <XIcon className="h-5 w-5" onClick={onClose} />
                 <h2 className="text-base font-semibold text-foreground">Add Task</h2>
-                <CheckIcon className="h-5 w-5" onClick={onSubmit} />
+                <CheckIcon className={`h-5 w-5 ${!name.trim() || loading ? 'text-muted-foreground' : 'text-primary'}`} onClick={onSubmit} />
             </div>
             
             <div className="px-3 flex flex-col gap-3 w-full">

@@ -15,7 +15,7 @@ class TasksPlugin(BasePlugin):
         return self.router.router
 
     def get_ws_events(self):
-        return []
+        return ["tasks.state_updated"]
 
     def get_command(self):
         return self.command

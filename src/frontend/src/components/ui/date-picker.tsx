@@ -1,5 +1,4 @@
 "use client"
-import * as React from "react"
 import { format, parseISO } from "date-fns"
 import { ChevronDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -21,7 +20,7 @@ export function DatePicker({ placeholder, value, onChange }: DatePickerProps) {
 
   const handleSelect = (selected: Date | undefined) => {
     if (!onChange) return
-    onChange(selected ? selected.toISOString() : null)
+    onChange(selected ? format(selected, "yyyy-MM-dd") : null)
   }
 
   return (

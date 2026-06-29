@@ -18,8 +18,8 @@ export interface Task {
     id: number;
     title: string;
     description?: string;
-    dueDate?: string;
-    toDoDate?: string;
+    due_date?: string;
+    to_do_date?: string;
     completed: boolean;
     labels?: Label[];
     task_list?: TaskList;
@@ -46,6 +46,7 @@ export function useTaskState() {
     }, []);
 
     const handleUpdate = useCallback((data: unknown) => {
+        console.log("Received task state update:", data);
         setTaskState(data as TaskState);
     }, []);
 
@@ -220,4 +221,46 @@ export function useAddTask() {
     }, []);
 
     return { addTask, loading };
+}
+
+export function useGetAllTasks() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    const fetchTasks = useCallback(() => {
+        apiFetch<Task[]>("/tasks/get_all_tasks")
+            .then(data => setTasks(data))
+            .catch(() => console.error("Failed to fetch tasks"));
+    }, []);
+
+    useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+    return { tasks, refetch: fetchTasks };
+}
+
+export function useGetTomorrowTasks() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    const fetchTasks = useCallback(() => {
+        apiFetch<Task[]>("/tasks/get_tomorrow_tasks")
+            .then(data => setTasks(data))
+            .catch(() => console.error("Failed to fetch tomorrow's tasks"));
+    }, []);
+
+    useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+    return { tasks, refetch: fetchTasks };
+}
+
+export function useGetUpcomingTasks() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    const fetchTasks = useCallback(() => {
+        apiFetch<Task[]>("/tasks/get_upcoming_tasks")
+            .then(data => setTasks(data))
+            .catch(() => console.error("Failed to fetch upcoming tasks"));
+    }, []);
+
+    useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+    return { tasks, refetch: fetchTasks };
 }

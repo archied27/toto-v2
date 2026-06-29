@@ -5,6 +5,7 @@ contains logic for tasks plugin
 from app.plugins.tasks.controller.db_controller import TasksDBController
 from app.core.core import Core
 from app.plugins.tasks.schemas import Task, TaskList, Label, TasksState, CreateLabel, CreateTaskList, CreateTask
+from dataclasses import asdict
 
 class TasksController:
     def __init__(self, core: Core):
@@ -15,6 +16,8 @@ class TasksController:
         # create the tables if they don't exist
         await self.db_controller.create_tables()
         await self.update_state()
+        self.core.bus.on("tasks.update_state", self.update_state)
+        self.core.scheduler.add_recurring("tasks.update_state", hour="*/1") # update the state every hour 
 
     async def update_state(self):
         # get all tasks that are overdue
@@ -37,9 +40,8 @@ class TasksController:
 
         if old_state is None or new_state != old_state:
             # update the state with the new tasks
-            print("tasks updated")
             await self.core.state.set("tasks", new_state)
-            self.core.bus.emit_no_wait("tasks.state_updated", new_state)
+            self.core.bus.emit_no_wait("tasks.state_updated", new_state.model_dump(mode="json"))
 
     async def get_state(self) -> TasksState:
         # get the state of the tasks plugin
@@ -147,3 +149,11 @@ class TasksController:
         # edit a task list in the database
         await self.db_controller.edit_list(list_id, name, colour)
         await self.update_state()
+
+    async def get_tomorrow_tasks(self) -> list[Task]:
+        # get all tasks that are due tomorrow
+        return await self.db_controller.get_tomorrow_tasks()
+
+    async def get_upcoming_tasks(self) -> list[Task]:
+        # get all tasks that are due in the next 7 days
+        return await self.db_controller.get_tasks_with_a_due_date()

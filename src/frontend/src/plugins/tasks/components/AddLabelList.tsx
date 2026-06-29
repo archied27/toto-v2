@@ -6,6 +6,7 @@ import { PenIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { HexColorPicker } from "react-colorful"
 import { useAddLabel, useAddList } from "../useTasks"
+import { getTextColour } from "../utils"
 
 export default function AddLabelList({ type, onAdd }: 
     { type: "Label" | "List", onAdd?: () => void;}) {
@@ -53,7 +54,7 @@ export default function AddLabelList({ type, onAdd }:
                 <div className="flex gap-2">
                     <Input 
                         placeholder={`${type} Name...`} 
-                        style={{ backgroundColor: colour ? colour : "transparent" }} 
+                        style={{ backgroundColor: colour ? colour : "transparent", color: colour ? getTextColour(colour) : "inherit" }} 
                         className="text-foreground"
                         onChange={(e) => setName(e.target.value)}
                     />

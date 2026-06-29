@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import Hero from "./components/Hero";
-import { useTaskState, type Task } from "./useTasks";
+import { useGetAllTasks, useGetTomorrowTasks, useGetUpcomingTasks, useTaskState, type Task } from "./useTasks";
 import TaskTabs from "./components/TaskTabs";
 import TaskList from "./components/TaskList";
 import AddTask from "./components/AddTask";
 
 export default function TasksPage() {
     const { taskState } = useTaskState();
+    const { tasks: allTasks, refetch: getAllTasks } = useGetAllTasks();
+    const { tasks: tomorrowTasks, refetch: getTomorrowTasks } = useGetTomorrowTasks();
+    const { tasks: upcomingTasks, refetch: getUpcomingTasks } = useGetUpcomingTasks();
+
     const [currentTab, setCurrentTab] = useState<"Today" | "Tomorrow" | "Upcoming" | "All">("Today");
 
     const [currentTasks, setCurrentTasks] = useState<Task[]>(taskState?.today_tasks || []);
@@ -18,27 +22,29 @@ export default function TasksPage() {
         setCompletedTasks(currentTasks.filter(task => task.completed));
     }, [currentTasks]);
 
-    const handleTabChange = (tab: "Today" | "Tomorrow" | "Upcoming" | "All") => {
-        setCurrentTab(tab);
-        switch (tab) {
+    useEffect(() => {
+        switch (currentTab) {
             case "Today":
                 setCurrentTasks(taskState?.today_tasks || []);
                 break;
             case "Tomorrow":
-                setCurrentTasks(taskState?.tasks_due_today || []);
+                setCurrentTasks(tomorrowTasks);
                 break;
             case "Upcoming":
-                setCurrentTasks(taskState?.overdue_tasks || []);
+                setCurrentTasks(upcomingTasks);
                 break;
             case "All":
-                setCurrentTasks([
-                    ...(taskState?.today_tasks || []),
-                    ...(taskState?.tasks_due_today || []),
-                    ...(taskState?.overdue_tasks || [])
-                ]);
+                setCurrentTasks(allTasks);
                 break;
         }
-    }
+    }, [taskState, tomorrowTasks, upcomingTasks, allTasks, currentTab]);
+
+    const handleTabChange = (tab: "Today" | "Tomorrow" | "Upcoming" | "All") => {
+        setCurrentTab(tab);
+        if (tab === "Tomorrow") getTomorrowTasks();
+        if (tab === "Upcoming") getUpcomingTasks();
+        if (tab === "All") getAllTasks();
+    };
 
     return (
         <div className="bg-background text-foreground px-3 pb-35 min-h-screen flex flex-col">
@@ -51,7 +57,7 @@ export default function TasksPage() {
                         />
                         <div className="fixed inset-0 z-50 flex items-center justify-center px-6 pointer-events-none">
                         <div className="pointer-events-auto w-full max-w-sm">
-                            <AddTask />
+                            <AddTask onClose={() => setAddTaskPageOpen(false)} />
                         </div>
                         </div>
                     </>

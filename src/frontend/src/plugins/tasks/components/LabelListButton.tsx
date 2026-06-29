@@ -4,6 +4,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { PenIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import EditLabelList from "./EditLabelList";
+import { getTextColour } from "../utils";
 
 export default function LabelListButton({ item, type, refetch, selected, onToggle }: { item: TaskList | Label; type: "list" | "label"; refetch: () => void; selected: boolean; onToggle: () => void })
 {
@@ -35,7 +36,7 @@ export default function LabelListButton({ item, type, refetch, selected, onToggl
             
             <ContextMenu>
                 <ContextMenuTrigger asChild>
-                    <Button style={{ backgroundColor: item.colour }} className={selected ? "ring-1 ring-white" : ""} onClick={onToggle}>
+                    <Button style={{ backgroundColor: item.colour, color: getTextColour(item.colour) }} className={selected ? "ring-1 ring-white" : ""} onClick={onToggle}>
                         <p>{item.name}</p>
                     </Button>
                 </ContextMenuTrigger>
